@@ -42,6 +42,19 @@ export function apiError(
 /**
  * Standard success response helper
  */
-export function apiSuccess<T>(data: T, status: number = 200) {
-  return NextResponse.json({ success: true, data }, { status });
+export function apiSuccess<T>(
+  data: T,
+  statusOrOptions: number | { status?: number; pagination?: { page: number; limit: number; total: number; totalPages: number } } = 200,
+) {
+  if (typeof statusOrOptions === "number") {
+    return NextResponse.json({ success: true, data }, { status: statusOrOptions });
+  }
+  return NextResponse.json(
+    {
+      success: true,
+      data,
+      ...(statusOrOptions.pagination ? { meta: statusOrOptions.pagination } : {}),
+    },
+    { status: statusOrOptions.status ?? 200 },
+  );
 }
