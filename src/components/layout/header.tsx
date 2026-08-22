@@ -1,21 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Heart, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
 import { cn } from "@/utils/cn";
-import { ROUTES } from "@/lib/constants";
 import { useAppSelector, useAppDispatch } from "@/hooks/useRedux";
 import { selectCurrentUser, selectIsAuthenticated, logout } from "@/store/slices/authSlice";
 
 const navLinks = [
-  { href: "/features", label: "Features" },
+  { href: "/patient/doctors", label: "Find Doctors" },
+  { href: "/#specializations", label: "Specializations" },
+  { href: "/#how-it-works", label: "How It Works" },
   { href: "/about", label: "About" },
-  { href: "/contact", label: "Contact" },
 ];
 
 const ROLE_DASHBOARDS: Record<string, string> = {
@@ -24,8 +24,15 @@ const ROLE_DASHBOARDS: Record<string, string> = {
   ADMIN: "/admin/dashboard",
 };
 
+const ROLE_LABELS: Record<string, string> = {
+  PATIENT: "Patient Portal",
+  DOCTOR: "Doctor Portal",
+  ADMIN: "Admin Portal",
+};
+
 export function Header() {
   const router = useRouter();
+  const pathname = usePathname();
   const dispatch = useAppDispatch();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -40,7 +47,6 @@ export function Header() {
       dispatch(logout());
       router.push("/login");
     } catch {
-      // Even if the API call fails, clear local state
       dispatch(logout());
       router.push("/login");
     } finally {
@@ -52,12 +58,16 @@ export function Header() {
   const firstName = profileName?.firstName || user?.email?.split("@")[0] || "User";
   const lastName = profileName?.lastName || "";
 
+  // Hide header on dashboard pages (they have their own sidebar)
+  const isDashboard = pathname.startsWith("/patient") || pathname.startsWith("/doctor") || pathname.startsWith("/admin");
+  if (isDashboard) return null;
+
   return (
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-zinc-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href={ROUTES.HOME} className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2 shrink-0">
             <div className="flex items-center justify-center w-8 h-8 bg-violet-600 rounded-lg">
               <Heart className="h-5 w-5 text-white" fill="currentColor" />
             </div>
@@ -65,20 +75,28 @@ export function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-sm font-medium text-zinc-600 hover:text-zinc-900 transition-colors"
-              >
-                {link.label}
-              </Link>
-            ))}
+          <nav className="hidden lg:flex items-center gap-1" aria-label="Main navigation">
+            {navLinks.map((link) => {
+              const isActive = pathname === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    "px-3 py-2 text-sm font-medium rounded-lg transition-colors",
+                    isActive
+                      ? "text-violet-700 bg-violet-50"
+                      : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50"
+                  )}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
           </nav>
 
           {/* Desktop CTA */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-3">
             {isAuthenticated && user ? (
               <div className="flex items-center gap-3">
                 <Link
@@ -97,17 +115,16 @@ export function Header() {
                   isLoading={isLoggingOut}
                 >
                   <LogOut className="h-4 w-4" />
-                  Sign Out
                 </Button>
               </div>
             ) : (
               <>
-                <Link href={ROUTES.LOGIN}>
+                <Link href="/login">
                   <Button variant="ghost" size="sm">
-                    Sign In
+                    Log In
                   </Button>
                 </Link>
-                <Link href={ROUTES.REGISTER}>
+                <Link href="/register">
                   <Button size="sm">Get Started</Button>
                 </Link>
               </>
@@ -117,8 +134,9 @@ export function Header() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-lg text-zinc-600 hover:bg-zinc-100"
-            aria-label="Toggle menu"
+            className="lg:hidden p-2 rounded-lg text-zinc-600 hover:bg-zinc-100"
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileMenuOpen}
           >
             {mobileMenuOpen ? (
               <X className="h-5 w-5" />
@@ -127,64 +145,77 @@ export function Header() {
             )}
           </button>
         </div>
-
-        {/* Mobile Navigation */}
-        <motion.div
-          initial={false}
-          animate={mobileMenuOpen ? { height: "auto", opacity: 1 } : { height: 0, opacity: 0 }}
-          className={cn("md:hidden overflow-hidden", !mobileMenuOpen && "pointer-events-none")}
-        >
-          <div className="py-4 space-y-2">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="block px-4 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-50 rounded-lg"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {link.label}
-              </Link>
-            ))}
-            <div className="pt-4 px-4 space-y-2">
-              {isAuthenticated && user ? (
-                <>
-                  <Link
-                    href={ROLE_DASHBOARDS[user.role] || "/patient/dashboard"}
-                    className="block"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <Button variant="outline" className="w-full">
-                      My Dashboard
-                    </Button>
-                  </Link>
-                  <Button
-                    variant="ghost"
-                    className="w-full"
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      handleLogout();
-                    }}
-                    isLoading={isLoggingOut}
-                  >
-                    Sign Out
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Link href={ROUTES.LOGIN} className="block">
-                    <Button variant="outline" className="w-full">
-                      Sign In
-                    </Button>
-                  </Link>
-                  <Link href={ROUTES.REGISTER} className="block">
-                    <Button className="w-full">Get Started</Button>
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-        </motion.div>
       </div>
+
+      {/* Mobile Navigation */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="lg:hidden overflow-hidden border-t border-zinc-100"
+          >
+            <nav className="px-4 py-4 space-y-1" aria-label="Mobile navigation">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    "block px-4 py-2.5 text-sm font-medium rounded-lg transition-colors",
+                    pathname === link.href
+                      ? "text-violet-700 bg-violet-50"
+                      : "text-zinc-600 hover:bg-zinc-50"
+                  )}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {link.label}
+                </Link>
+              ))}
+              <div className="pt-4 px-4 space-y-2 border-t border-zinc-100 mt-2">
+                {isAuthenticated && user ? (
+                  <>
+                    <Link
+                      href={ROLE_DASHBOARDS[user.role] || "/patient/dashboard"}
+                      className="block"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Button variant="outline" className="w-full justify-start">
+                        <Avatar firstName={firstName} lastName={lastName} size="sm" />
+                        {ROLE_LABELS[user.role] || "Dashboard"}
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        handleLogout();
+                      }}
+                      isLoading={isLoggingOut}
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Sign Out
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/login" className="block" onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="outline" className="w-full">
+                        Log In
+                      </Button>
+                    </Link>
+                    <Link href="/register" className="block" onClick={() => setMobileMenuOpen(false)}>
+                      <Button className="w-full">Get Started</Button>
+                    </Link>
+                  </>
+                )}
+              </div>
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }
