@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { Provider } from "react-redux";
 import { makeStore } from "@/store";
+import { AuthProvider } from "@/components/auth-provider";
 import { ToastContainer } from "@/components/ui/toast";
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -10,7 +11,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <Provider store={store}>
-      {children}
+      <AuthProvider>
+        {children}
+      </AuthProvider>
       <ToastContainer />
     </Provider>
   );

@@ -10,6 +10,7 @@ export interface User {
   status: UserStatus;
   createdAt: string;
   updatedAt: string;
+  profile?: Record<string, unknown> | null;
 }
 
 export interface AuthState {

@@ -2,9 +2,8 @@
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 export const API_TIMEOUT = 30000; // 30 seconds
 
-// Auth Constants
-export const ACCESS_TOKEN_KEY = "carely_access_token";
-export const REFRESH_TOKEN_KEY = "carely_refresh_token";
+// Auth Constants (managed via HttpOnly cookies, not client-side storage)
+// Token names: carely_access_token, carely_refresh_token
 
 // Pagination
 export const DEFAULT_PAGE_SIZE = 10;

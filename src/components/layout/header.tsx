@@ -1,12 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Menu, X, Heart } from "lucide-react";
+import { Menu, X, Heart, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Avatar } from "@/components/ui/avatar";
 import { cn } from "@/utils/cn";
 import { ROUTES } from "@/lib/constants";
+import { useAppSelector, useAppDispatch } from "@/hooks/useRedux";
+import { selectCurrentUser, selectIsAuthenticated, logout } from "@/store/slices/authSlice";
 
 const navLinks = [
   { href: "/features", label: "Features" },
@@ -14,8 +18,39 @@ const navLinks = [
   { href: "/contact", label: "Contact" },
 ];
 
+const ROLE_DASHBOARDS: Record<string, string> = {
+  PATIENT: "/patient/dashboard",
+  DOCTOR: "/doctor/dashboard",
+  ADMIN: "/admin/dashboard",
+};
+
 export function Header() {
+  const router = useRouter();
+  const dispatch = useAppDispatch();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const user = useAppSelector(selectCurrentUser);
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" });
+      dispatch(logout());
+      router.push("/login");
+    } catch {
+      // Even if the API call fails, clear local state
+      dispatch(logout());
+      router.push("/login");
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
+  const profileName = user?.profile as Record<string, string> | undefined;
+  const firstName = profileName?.firstName || user?.email?.split("@")[0] || "User";
+  const lastName = profileName?.lastName || "";
 
   return (
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-zinc-100">
@@ -44,14 +79,39 @@ export function Header() {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-3">
-            <Link href={ROUTES.LOGIN}>
-              <Button variant="ghost" size="sm">
-                Sign In
-              </Button>
-            </Link>
-            <Link href={ROUTES.REGISTER}>
-              <Button size="sm">Get Started</Button>
-            </Link>
+            {isAuthenticated && user ? (
+              <div className="flex items-center gap-3">
+                <Link
+                  href={ROLE_DASHBOARDS[user.role] || "/patient/dashboard"}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-zinc-50 transition-colors"
+                >
+                  <Avatar firstName={firstName} lastName={lastName} size="sm" />
+                  <span className="text-sm font-medium text-zinc-700">
+                    {firstName} {lastName}
+                  </span>
+                </Link>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLogout}
+                  isLoading={isLoggingOut}
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sign Out
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Link href={ROUTES.LOGIN}>
+                  <Button variant="ghost" size="sm">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link href={ROUTES.REGISTER}>
+                  <Button size="sm">Get Started</Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -86,14 +146,41 @@ export function Header() {
               </Link>
             ))}
             <div className="pt-4 px-4 space-y-2">
-              <Link href={ROUTES.LOGIN} className="block">
-                <Button variant="outline" className="w-full">
-                  Sign In
-                </Button>
-              </Link>
-              <Link href={ROUTES.REGISTER} className="block">
-                <Button className="w-full">Get Started</Button>
-              </Link>
+              {isAuthenticated && user ? (
+                <>
+                  <Link
+                    href={ROLE_DASHBOARDS[user.role] || "/patient/dashboard"}
+                    className="block"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Button variant="outline" className="w-full">
+                      My Dashboard
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    className="w-full"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      handleLogout();
+                    }}
+                    isLoading={isLoggingOut}
+                  >
+                    Sign Out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link href={ROUTES.LOGIN} className="block">
+                    <Button variant="outline" className="w-full">
+                      Sign In
+                    </Button>
+                  </Link>
+                  <Link href={ROUTES.REGISTER} className="block">
+                    <Button className="w-full">Get Started</Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </motion.div>
