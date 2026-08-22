@@ -34,9 +34,9 @@ export function Hero() {
   const ctaLabel = isAuthenticated ? "Go to Dashboard" : "Find a Doctor";
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-violet-50/80 via-white to-white">
+    <section className="relative overflow-hidden bg-gradient-to-b from-violet-50/80 via-white to-white dark:from-violet-950/30 dark:via-zinc-950 dark:to-zinc-950">
       {/* Subtle background pattern */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,rgba(139,92,246,0.08),transparent_60%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,rgba(139,92,246,0.08),transparent_60%)] dark:bg-[radial-gradient(circle_at_50%_-20%,rgba(139,92,246,0.15),transparent_60%)]" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20 md:pt-24 md:pb-28">
         <div className="max-w-4xl mx-auto text-center">
@@ -46,7 +46,7 @@ export function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-violet-100/80 text-violet-700 rounded-full text-sm font-medium border border-violet-200/50">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-violet-100/80 text-violet-700 rounded-full text-sm font-medium border border-violet-200/50 dark:bg-violet-950/60 dark:text-violet-300 dark:border-violet-800/50">
               <span className="w-2 h-2 bg-violet-500 rounded-full animate-pulse" />
               Trusted by thousands of patients
             </span>
@@ -57,10 +57,10 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="mt-8 text-4xl sm:text-5xl md:text-6xl font-bold text-zinc-900 tracking-tight leading-[1.1]"
+            className="mt-8 text-4xl sm:text-5xl md:text-6xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight leading-[1.1]"
           >
             Healthcare that fits{" "}
-            <span className="text-violet-600">your life</span>
+            <span className="text-violet-600 dark:text-violet-400">your life</span>
           </motion.h1>
 
           {/* Subheadline */}
@@ -68,7 +68,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="mt-6 text-lg sm:text-xl text-zinc-600 max-w-2xl mx-auto leading-relaxed"
+            className="mt-6 text-lg sm:text-xl text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto leading-relaxed"
           >
             Find trusted doctors, book appointments in seconds, and manage your
             prescriptions — all from one place.
@@ -103,13 +103,13 @@ export function Hero() {
           >
             <Link
               href="/patient/doctors"
-              className="group flex items-center gap-3 bg-white border border-zinc-200 rounded-xl px-5 py-4 shadow-sm hover:shadow-md hover:border-violet-200 transition-all duration-200"
+              className="group flex items-center gap-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-5 py-4 shadow-sm hover:shadow-md hover:border-violet-200 dark:hover:border-violet-800 transition-all duration-200"
             >
-              <Search className="h-5 w-5 text-zinc-400 group-hover:text-violet-500 transition-colors" />
-              <span className="flex-1 text-left text-zinc-500 group-hover:text-zinc-700 transition-colors">
+              <Search className="h-5 w-5 text-zinc-400 group-hover:text-violet-500 dark:text-zinc-500 transition-colors" />
+              <span className="flex-1 text-left text-zinc-500 group-hover:text-zinc-700 dark:text-zinc-400 dark:group-hover:text-zinc-200 transition-colors">
                 Search doctors, specialties, conditions...
               </span>
-              <ChevronRight className="h-5 w-5 text-zinc-300 group-hover:text-violet-500 group-hover:translate-x-0.5 transition-all" />
+              <ChevronRight className="h-5 w-5 text-zinc-300 group-hover:text-violet-500 group-hover:translate-x-0.5 dark:text-zinc-600 transition-all" />
             </Link>
           </motion.div>
 
@@ -122,12 +122,12 @@ export function Hero() {
           >
             {trustStats.map((stat) => (
               <div key={stat.label} className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-10 h-10 bg-violet-100 text-violet-600 rounded-lg">
+                <div className="flex items-center justify-center w-10 h-10 bg-violet-100 text-violet-600 rounded-lg dark:bg-violet-950 dark:text-violet-400">
                   {stat.icon}
                 </div>
                 <div className="text-left">
-                  <p className="text-lg font-bold text-zinc-900">{stat.value}</p>
-                  <p className="text-sm text-zinc-500">{stat.label}</p>
+                  <p className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{stat.value}</p>
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400">{stat.label}</p>
                 </div>
               </div>
             ))}

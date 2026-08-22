@@ -18,7 +18,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="block text-sm font-medium text-zinc-700 mb-1.5"
+            className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5"
           >
             {label}
           </label>
@@ -28,12 +28,14 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           id={inputId}
           className={cn(
             "w-full px-4 py-2.5 text-sm rounded-lg border transition-colors duration-200",
-            "placeholder:text-zinc-400",
+            "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100",
+            "placeholder:text-zinc-400 dark:placeholder:text-zinc-500",
             "focus:outline-none focus:ring-2 focus:ring-offset-0",
+            "dark:focus:ring-offset-zinc-950",
             error
-              ? "border-red-300 focus:border-red-500 focus:ring-red-500/20"
-              : "border-zinc-200 focus:border-violet-500 focus:ring-violet-500/20",
-            "disabled:bg-zinc-50 disabled:cursor-not-allowed",
+              ? "border-red-300 focus:border-red-500 focus:ring-red-500/20 dark:border-red-700"
+              : "border-zinc-200 dark:border-zinc-700 focus:border-violet-500 focus:ring-violet-500/20",
+            "disabled:bg-zinc-50 dark:disabled:bg-zinc-800 disabled:cursor-not-allowed",
             className
           )}
           aria-invalid={error ? "true" : "false"}
@@ -41,12 +43,12 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           {...props}
         />
         {error && (
-          <p id={`${inputId}-error`} className="mt-1.5 text-sm text-red-600">
+          <p id={`${inputId}-error`} className="mt-1.5 text-sm text-red-600 dark:text-red-400">
             {error}
           </p>
         )}
         {!error && helperText && (
-          <p id={`${inputId}-helper`} className="mt-1.5 text-sm text-zinc-500">
+          <p id={`${inputId}-helper`} className="mt-1.5 text-sm text-zinc-500 dark:text-zinc-400">
             {helperText}
           </p>
         )}

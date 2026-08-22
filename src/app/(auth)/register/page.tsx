@@ -92,7 +92,6 @@ export default function RegisterPage() {
 
       if (!response.ok) {
         if (data.error?.details) {
-          // Map server field errors to our error state
           const fieldErrors: Record<string, string> = {};
           for (const [field, messages] of Object.entries(data.error.details as Record<string, string[]>)) {
             if (messages.length > 0) fieldErrors[field] = messages[0];
@@ -129,7 +128,6 @@ export default function RegisterPage() {
 
   const updateField = (field: keyof typeof formData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    // Clear field error on change
     if (errors[field]) {
       setErrors((prev) => {
         const next = { ...prev };
@@ -141,13 +139,13 @@ export default function RegisterPage() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-zinc-900 mb-2">Create an account</h2>
-      <p className="text-zinc-600 mb-6">
+      <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">Create an account</h2>
+      <p className="text-zinc-600 dark:text-zinc-400 mb-6">
         Join Carely and start your healthcare journey
       </p>
 
       {serverError && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+        <div className="mb-4 p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
           {serverError}
         </div>
       )}
@@ -160,20 +158,22 @@ export default function RegisterPage() {
           className={cn(
             "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
             role === "PATIENT"
-              ? "border-violet-500 bg-violet-50"
-              : "border-zinc-200 hover:border-zinc-300"
+              ? "border-violet-500 bg-violet-50 dark:bg-violet-950"
+              : "border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600"
           )}
         >
           <div
             className={cn(
               "w-10 h-10 rounded-full flex items-center justify-center",
-              role === "PATIENT" ? "bg-violet-100 text-violet-600" : "bg-zinc-100 text-zinc-600"
+              role === "PATIENT"
+                ? "bg-violet-100 text-violet-600 dark:bg-violet-900 dark:text-violet-400"
+                : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
             )}
           >
             <User className="h-5 w-5" />
           </div>
-          <span className="font-medium text-zinc-900">Patient</span>
-          <span className="text-xs text-zinc-500">Book appointments</span>
+          <span className="font-medium text-zinc-900 dark:text-zinc-100">Patient</span>
+          <span className="text-xs text-zinc-500 dark:text-zinc-400">Book appointments</span>
         </button>
 
         <button
@@ -182,20 +182,22 @@ export default function RegisterPage() {
           className={cn(
             "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
             role === "DOCTOR"
-              ? "border-violet-500 bg-violet-50"
-              : "border-zinc-200 hover:border-zinc-300"
+              ? "border-violet-500 bg-violet-50 dark:bg-violet-950"
+              : "border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600"
           )}
         >
           <div
             className={cn(
               "w-10 h-10 rounded-full flex items-center justify-center",
-              role === "DOCTOR" ? "bg-violet-100 text-violet-600" : "bg-zinc-100 text-zinc-600"
+              role === "DOCTOR"
+                ? "bg-violet-100 text-violet-600 dark:bg-violet-900 dark:text-violet-400"
+                : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
             )}
           >
             <Stethoscope className="h-5 w-5" />
           </div>
-          <span className="font-medium text-zinc-900">Doctor</span>
-          <span className="text-xs text-zinc-500">Manage practice</span>
+          <span className="font-medium text-zinc-900 dark:text-zinc-100">Doctor</span>
+          <span className="text-xs text-zinc-500 dark:text-zinc-400">Manage practice</span>
         </button>
       </div>
 
@@ -255,7 +257,6 @@ export default function RegisterPage() {
           required
         />
 
-        {/* Doctor-specific field */}
         {role === "DOCTOR" && (
           <Input
             label="Medical License Number"
@@ -271,16 +272,16 @@ export default function RegisterPage() {
         <div className="flex items-start gap-2">
           <input
             type="checkbox"
-            className="mt-1 w-4 h-4 rounded border-zinc-300 text-violet-600 focus:ring-violet-500"
+            className="mt-1 w-4 h-4 rounded border-zinc-300 dark:border-zinc-600 text-violet-600 focus:ring-violet-500"
             required
           />
-          <span className="text-sm text-zinc-600">
+          <span className="text-sm text-zinc-600 dark:text-zinc-400">
             I agree to the{" "}
-            <Link href="/terms" className="text-violet-600 hover:text-violet-700">
+            <Link href="/terms" className="text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300">
               Terms of Service
             </Link>{" "}
             and{" "}
-            <Link href="/privacy" className="text-violet-600 hover:text-violet-700">
+            <Link href="/privacy" className="text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300">
               Privacy Policy
             </Link>
           </span>
@@ -291,9 +292,9 @@ export default function RegisterPage() {
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-zinc-600">
+      <p className="mt-6 text-center text-sm text-zinc-600 dark:text-zinc-400">
         Already have an account?{" "}
-        <Link href="/login" className="text-violet-600 hover:text-violet-700 font-medium">
+        <Link href="/login" className="text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300 font-medium">
           Sign in
         </Link>
       </p>

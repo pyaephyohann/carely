@@ -21,7 +21,7 @@ export function CTASection() {
   const ctaLabel = isAuthenticated ? "Go to Dashboard" : "Get Started Free";
 
   return (
-    <section className="py-20 bg-zinc-900 relative overflow-hidden">
+    <section className="py-20 bg-zinc-900 dark:bg-zinc-950 relative overflow-hidden border-t border-zinc-800 dark:border-zinc-800">
       {/* Subtle background accent */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(139,92,246,0.15),transparent_60%)]" />
 
@@ -55,7 +55,7 @@ export function CTASection() {
               <Button
                 variant="ghost"
                 size="lg"
-                className="w-full sm:w-auto text-base px-8 text-zinc-300 hover:text-white hover:bg-zinc-800"
+                className="w-full sm:w-auto text-base px-8 text-zinc-300 hover:text-white hover:bg-zinc-800 dark:hover:bg-zinc-800"
               >
                 Learn More
               </Button>

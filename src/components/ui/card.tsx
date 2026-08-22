@@ -10,9 +10,9 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
 const Card = forwardRef<HTMLDivElement, CardProps>(
   ({ className, variant = "default", ...props }, ref) => {
     const variants = {
-      default: "bg-white border border-zinc-200",
-      bordered: "bg-white border-2 border-zinc-200",
-      elevated: "bg-white shadow-lg",
+      default: "bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800",
+      bordered: "bg-white dark:bg-zinc-900 border-2 border-zinc-200 dark:border-zinc-700",
+      elevated: "bg-white dark:bg-zinc-900 shadow-lg dark:shadow-zinc-900/50",
     };
 
     return (
@@ -31,7 +31,7 @@ const CardHeader = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("px-6 py-4 border-b border-zinc-100", className)}
+      className={cn("px-6 py-4 border-b border-zinc-100 dark:border-zinc-800", className)}
       {...props}
     />
   )
@@ -51,7 +51,7 @@ const CardFooter = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("px-6 py-4 border-t border-zinc-100", className)}
+      className={cn("px-6 py-4 border-t border-zinc-100 dark:border-zinc-800", className)}
       {...props}
     />
   )

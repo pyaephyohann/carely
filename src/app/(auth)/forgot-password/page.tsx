@@ -22,16 +22,16 @@ export default function ForgotPasswordPage() {
   if (isSubmitted) {
     return (
       <div className="text-center">
-        <div className="w-16 h-16 bg-violet-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <Mail className="h-8 w-8 text-violet-600" />
+        <div className="w-16 h-16 bg-violet-100 dark:bg-violet-950 rounded-full flex items-center justify-center mx-auto mb-6">
+          <Mail className="h-8 w-8 text-violet-600 dark:text-violet-400" />
         </div>
-        <h2 className="text-2xl font-bold text-zinc-900 mb-2">Check your email</h2>
-        <p className="text-zinc-600 mb-8">
+        <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">Check your email</h2>
+        <p className="text-zinc-600 dark:text-zinc-400 mb-8">
           We&apos;ve sent a password reset link to <strong>{email}</strong>
         </p>
         <Link
           href="/login"
-          className="inline-flex items-center gap-2 text-violet-600 hover:text-violet-700 font-medium"
+          className="inline-flex items-center gap-2 text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300 font-medium"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to sign in
@@ -44,14 +44,14 @@ export default function ForgotPasswordPage() {
     <div>
       <Link
         href="/login"
-        className="inline-flex items-center gap-1 text-sm text-zinc-600 hover:text-zinc-900 mb-6"
+        className="inline-flex items-center gap-1 text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 mb-6"
       >
         <ArrowLeft className="h-4 w-4" />
         Back to sign in
       </Link>
 
-      <h2 className="text-2xl font-bold text-zinc-900 mb-2">Forgot password?</h2>
-      <p className="text-zinc-600 mb-8">
+      <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">Forgot password?</h2>
+      <p className="text-zinc-600 dark:text-zinc-400 mb-8">
         Enter your email address and we&apos;ll send you a link to reset your password.
       </p>
 

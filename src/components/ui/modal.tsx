@@ -65,7 +65,7 @@ export function Modal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm"
             onClick={onClose}
           />
 
@@ -76,20 +76,20 @@ export function Modal({
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
             className={cn(
-              "relative w-full mx-4 bg-white rounded-xl shadow-xl",
+              "relative w-full mx-4 bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-800",
               sizes[size]
             )}
           >
             {/* Header */}
             {(title || showClose) && (
-              <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 dark:border-zinc-800">
                 {title && (
-                  <h2 className="text-lg font-semibold text-zinc-900">{title}</h2>
+                  <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{title}</h2>
                 )}
                 {showClose && (
                   <button
                     onClick={onClose}
-                    className="p-1 rounded-lg text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition-colors"
+                    className="p-1 rounded-lg text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 dark:hover:text-zinc-200 dark:hover:bg-zinc-800 transition-colors"
                     aria-label="Close modal"
                   >
                     <X className="h-5 w-5" />

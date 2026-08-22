@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Heart, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
+import { ThemeSwitcher } from "@/components/theme";
 import { cn } from "@/utils/cn";
 import { useAppSelector, useAppDispatch } from "@/hooks/useRedux";
 import { selectCurrentUser, selectIsAuthenticated, logout } from "@/store/slices/authSlice";
@@ -63,7 +64,7 @@ export function Header() {
   if (isDashboard) return null;
 
   return (
-    <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-zinc-100">
+    <header className="sticky top-0 z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-100 dark:border-zinc-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -71,7 +72,7 @@ export function Header() {
             <div className="flex items-center justify-center w-8 h-8 bg-violet-600 rounded-lg">
               <Heart className="h-5 w-5 text-white" fill="currentColor" />
             </div>
-            <span className="text-xl font-bold text-zinc-900">Carely</span>
+            <span className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Carely</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -85,8 +86,8 @@ export function Header() {
                   className={cn(
                     "px-3 py-2 text-sm font-medium rounded-lg transition-colors",
                     isActive
-                      ? "text-violet-700 bg-violet-50"
-                      : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50"
+                      ? "text-violet-700 bg-violet-50 dark:text-violet-400 dark:bg-violet-950"
+                      : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-800"
                   )}
                 >
                   {link.label}
@@ -96,15 +97,16 @@ export function Header() {
           </nav>
 
           {/* Desktop CTA */}
-          <div className="hidden lg:flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-2">
+            <ThemeSwitcher />
             {isAuthenticated && user ? (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 ml-1">
                 <Link
                   href={ROLE_DASHBOARDS[user.role] || "/patient/dashboard"}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-zinc-50 transition-colors"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
                 >
                   <Avatar firstName={firstName} lastName={lastName} size="sm" />
-                  <span className="text-sm font-medium text-zinc-700">
+                  <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                     {firstName} {lastName}
                   </span>
                 </Link>
@@ -118,7 +120,7 @@ export function Header() {
                 </Button>
               </div>
             ) : (
-              <>
+              <div className="flex items-center gap-2 ml-1">
                 <Link href="/login">
                   <Button variant="ghost" size="sm">
                     Log In
@@ -127,23 +129,26 @@ export function Header() {
                 <Link href="/register">
                   <Button size="sm">Get Started</Button>
                 </Link>
-              </>
+              </div>
             )}
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2 rounded-lg text-zinc-600 hover:bg-zinc-100"
-            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-            aria-expanded={mobileMenuOpen}
-          >
-            {mobileMenuOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
-          </button>
+          {/* Mobile: Theme + Menu */}
+          <div className="flex items-center gap-1 lg:hidden">
+            <ThemeSwitcher />
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 rounded-lg text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={mobileMenuOpen}
+            >
+              {mobileMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -155,7 +160,7 @@ export function Header() {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="lg:hidden overflow-hidden border-t border-zinc-100"
+            className="lg:hidden overflow-hidden border-t border-zinc-100 dark:border-zinc-800"
           >
             <nav className="px-4 py-4 space-y-1" aria-label="Mobile navigation">
               {navLinks.map((link) => (
@@ -165,15 +170,15 @@ export function Header() {
                   className={cn(
                     "block px-4 py-2.5 text-sm font-medium rounded-lg transition-colors",
                     pathname === link.href
-                      ? "text-violet-700 bg-violet-50"
-                      : "text-zinc-600 hover:bg-zinc-50"
+                      ? "text-violet-700 bg-violet-50 dark:text-violet-400 dark:bg-violet-950"
+                      : "text-zinc-600 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:bg-zinc-800"
                   )}
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {link.label}
                 </Link>
               ))}
-              <div className="pt-4 px-4 space-y-2 border-t border-zinc-100 mt-2">
+              <div className="pt-4 px-4 space-y-2 border-t border-zinc-100 dark:border-zinc-800 mt-2">
                 {isAuthenticated && user ? (
                   <>
                     <Link

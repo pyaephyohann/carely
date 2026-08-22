@@ -15,17 +15,17 @@ const icons = {
 };
 
 const styles = {
-  success: "bg-emerald-50 border-emerald-200 text-emerald-800",
-  error: "bg-red-50 border-red-200 text-red-800",
-  warning: "bg-amber-50 border-amber-200 text-amber-800",
-  info: "bg-blue-50 border-blue-200 text-blue-800",
+  success: "bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-950 dark:border-emerald-800 dark:text-emerald-200",
+  error: "bg-red-50 border-red-200 text-red-800 dark:bg-red-950 dark:border-red-800 dark:text-red-200",
+  warning: "bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-950 dark:border-amber-800 dark:text-amber-200",
+  info: "bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-200",
 };
 
 const iconStyles = {
-  success: "text-emerald-500",
-  error: "text-red-500",
-  warning: "text-amber-500",
-  info: "text-blue-500",
+  success: "text-emerald-500 dark:text-emerald-400",
+  error: "text-red-500 dark:text-red-400",
+  warning: "text-amber-500 dark:text-amber-400",
+  info: "text-blue-500 dark:text-blue-400",
 };
 
 function ToastItem({ toast }: { toast: ToastType }) {
@@ -62,7 +62,7 @@ function ToastItem({ toast }: { toast: ToastType }) {
       </div>
       <button
         onClick={() => dispatch(removeToast(toast.id))}
-        className="flex-shrink-0 p-0.5 rounded hover:bg-black/10 transition-colors"
+        className="flex-shrink-0 p-0.5 rounded hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
         aria-label="Dismiss"
       >
         <X className="h-4 w-4" />

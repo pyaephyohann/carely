@@ -1,6 +1,11 @@
 @import "tailwindcss";
 
-/* Design Tokens */
+/* Tailwind v4: Enable class-based dark mode */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* =============================================================================
+   Design Tokens — Light Theme (default)
+   ============================================================================= */
 :root {
   /* Brand Colors */
   --color-brand-50: #f5f3ff;
@@ -51,11 +56,56 @@
   --color-info-600: #2563eb;
   --color-info-700: #1d4ed8;
 
-  /* Background */
+  /* Semantic Surface Tokens (Light) */
   --background: #ffffff;
-  --foreground: var(--color-neutral-900);
+  --foreground: #18181b;
+  --card: #ffffff;
+  --card-foreground: #18181b;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  --border: #e4e4e7;
+  --ring: #8b5cf6;
 }
 
+/* =============================================================================
+   Design Tokens — Dark Theme
+   ============================================================================= */
+.dark {
+  --background: #09090b;
+  --foreground: #fafafa;
+  --card: #18181b;
+  --card-foreground: #fafafa;
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+  --border: #27272a;
+  --ring: #8b5cf6;
+
+  /* Adjust neutral palette for dark backgrounds */
+  --color-neutral-50: #18181b;
+  --color-neutral-100: #27272a;
+  --color-neutral-200: #3f3f46;
+  --color-neutral-300: #52525b;
+  --color-neutral-400: #a1a1aa;
+  --color-neutral-500: #71717a;
+  --color-neutral-600: #d4d4d8;
+  --color-neutral-700: #e4e4e7;
+  --color-neutral-800: #f4f4f5;
+  --color-neutral-900: #fafafa;
+
+  /* Adjust semantic colors for dark mode contrast */
+  --color-success-50: #052e16;
+  --color-success-100: #064e3b;
+  --color-warning-50: #451a03;
+  --color-warning-100: #78350f;
+  --color-error-50: #450a0a;
+  --color-error-100: #7f1d1d;
+  --color-info-50: #172554;
+  --color-info-100: #1e3a5f;
+}
+
+/* =============================================================================
+   Tailwind v4 Theme Integration
+   ============================================================================= */
 @theme inline {
   /* Brand */
   --color-brand-50: var(--color-brand-50);
@@ -69,7 +119,7 @@
   --color-brand-800: var(--color-brand-800);
   --color-brand-900: var(--color-brand-900);
 
-  /* Neutral */
+  /* Neutral (theme-aware via CSS vars above) */
   --color-neutral-50: var(--color-neutral-50);
   --color-neutral-100: var(--color-neutral-100);
   --color-neutral-200: var(--color-neutral-200);
@@ -106,9 +156,15 @@
   --color-info-600: var(--color-info-600);
   --color-info-700: var(--color-info-700);
 
-  /* Background & Foreground */
+  /* Semantic Surface Tokens */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
 
   /* Fonts */
   --font-sans: var(--font-geist-sans);
@@ -130,7 +186,9 @@
   --radius-full: 9999px;
 }
 
-/* Base Styles */
+/* =============================================================================
+   Base Styles
+   ============================================================================= */
 body {
   background: var(--background);
   color: var(--foreground);
@@ -152,7 +210,7 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-neutral-100);
+  background: var(--color-muted);
 }
 
 ::-webkit-scrollbar-thumb {

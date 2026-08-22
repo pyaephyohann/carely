@@ -51,7 +51,6 @@ export default function LoginPage() {
         };
         dispatch(setUser(userData));
 
-        // Redirect to appropriate dashboard or callback URL
         if (callbackUrl) {
           router.push(callbackUrl);
         } else {
@@ -72,13 +71,13 @@ export default function LoginPage() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-zinc-900 mb-2">Welcome back</h2>
-      <p className="text-zinc-600 mb-8">
+      <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">Welcome back</h2>
+      <p className="text-zinc-600 dark:text-zinc-400 mb-8">
         Sign in to your account to continue
       </p>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+        <div className="mb-4 p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
           {error}
         </div>
       )}
@@ -108,13 +107,13 @@ export default function LoginPage() {
           <label className="flex items-center gap-2">
             <input
               type="checkbox"
-              className="w-4 h-4 rounded border-zinc-300 text-violet-600 focus:ring-violet-500"
+              className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-600 text-violet-600 focus:ring-violet-500"
             />
-            <span className="text-sm text-zinc-600">Remember me</span>
+            <span className="text-sm text-zinc-600 dark:text-zinc-400">Remember me</span>
           </label>
           <Link
             href="/forgot-password"
-            className="text-sm text-violet-600 hover:text-violet-700"
+            className="text-sm text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300"
           >
             Forgot password?
           </Link>
@@ -125,9 +124,9 @@ export default function LoginPage() {
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-zinc-600">
+      <p className="mt-6 text-center text-sm text-zinc-600 dark:text-zinc-400">
         Don&apos;t have an account?{" "}
-        <Link href="/register" className="text-violet-600 hover:text-violet-700 font-medium">
+        <Link href="/register" className="text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300 font-medium">
           Sign up
         </Link>
       </p>

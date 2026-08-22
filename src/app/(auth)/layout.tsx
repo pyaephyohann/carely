@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Heart } from "lucide-react";
+import { ThemeSwitcher } from "@/components/theme";
 
 export default function AuthLayout({
   children,
@@ -28,16 +29,17 @@ export default function AuthLayout({
       </div>
 
       {/* Right Side - Form */}
-      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-white">
+      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-white dark:bg-zinc-950">
         <div className="w-full max-w-md">
-          {/* Mobile Logo */}
-          <div className="lg:hidden flex items-center gap-2 mb-8">
+          {/* Mobile Header */}
+          <div className="lg:hidden flex items-center justify-between mb-8">
             <Link href="/" className="flex items-center gap-2">
               <div className="flex items-center justify-center w-8 h-8 bg-violet-600 rounded-lg">
                 <Heart className="h-5 w-5 text-white" fill="currentColor" />
               </div>
-              <span className="text-xl font-bold text-zinc-900">Carely</span>
+              <span className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Carely</span>
             </Link>
+            <ThemeSwitcher />
           </div>
           {children}
         </div>
