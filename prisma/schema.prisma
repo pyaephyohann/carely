@@ -1,0 +1,544 @@
+// Carely Healthcare Platform - Database Schema
+// PostgreSQL with Prisma ORM
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// =============================================================================
+// ENUMS
+// =============================================================================
+
+enum UserRole {
+  PATIENT
+  DOCTOR
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING_VERIFICATION
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum AppointmentStatus {
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum AppointmentType {
+  IN_PERSON
+  VIRTUAL
+}
+
+enum PrescriptionStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum RecordType {
+  LAB_RESULT
+  IMAGING
+  PRESCRIPTION
+  REFERRAL
+  VISIT_NOTE
+  OTHER
+}
+
+enum NotificationType {
+  APPOINTMENT_CONFIRMED
+  APPOINTMENT_CANCELLED
+  APPOINTMENT_REMINDER
+  PRESCRIPTION_CREATED
+  DOCTOR_VERIFIED
+  SYSTEM
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  BOOK_APPOINTMENT
+  CANCEL_APPOINTMENT
+  RESCHEDULE_APPOINTMENT
+  CREATE_PRESCRIPTION
+  VERIFY_DOCTOR
+}
+
+// =============================================================================
+// IDENTITY & AUTHENTICATION
+// =============================================================================
+
+/// Core user account. Every person on the platform has exactly one User.
+/// Role determines which profile table extends this user.
+model User {
+  id            String     @id @default(cuid())
+  email         String     @unique
+  passwordHash  String
+  role          UserRole
+  status        UserStatus @default(ACTIVE)
+  emailVerified Boolean    @default(false)
+  lastLoginAt   DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  deletedAt     DateTime?
+
+  // Profile relations (exactly one will be non-null based on role)
+  patient Patient?
+  doctor  Doctor?
+  admin   Admin?
+
+  // Related entities
+  notifications Notification[]
+  auditLogs     AuditLog[]
+
+  @@index([email])
+  @@index([role])
+  @@index([status])
+  @@map("users")
+}
+
+/// Patient profile. Extends User with patient-specific information.
+model Patient {
+  id          String    @id @default(cuid())
+  userId      String    @unique
+  firstName   String
+  lastName    String
+  phone       String?
+  dateOfBirth DateTime?
+  gender      Gender?
+  address     String?
+  avatar      String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  appointments   Appointment[]
+  consultations  Consultation[]
+  prescriptions  Prescription[]
+  medicalRecords MedicalRecord[]
+  reviews        Review[]
+
+  @@index([userId])
+  @@map("patients")
+}
+
+/// Doctor profile. Extends User with professional information.
+model Doctor {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  firstName        String
+  lastName         String
+  phone            String?
+  avatar           String?
+  specializationId String?
+  licenseNumber    String   @unique
+  bio              String?
+  consultationFee  Decimal  @db.Decimal(10, 2)
+  yearsExperience  Int?
+  timezone         String   @default("UTC")
+  rating           Decimal? @db.Decimal(3, 2)
+  totalReviews     Int      @default(0)
+
+  // Verification
+  verified   Boolean   @default(false)
+  verifiedAt DateTime?
+  verifiedBy String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user           User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialization Specialization?      @relation(fields: [specializationId], references: [id], onDelete: SetNull)
+  schedules      DoctorSchedule[]
+  availability   DoctorAvailability[]
+  appointments   Appointment[]
+  consultations  Consultation[]
+  prescriptions  Prescription[]
+  reviews        Review[]
+  medicalRecords MedicalRecord[]
+
+  @@index([userId])
+  @@index([specializationId])
+  @@index([verified])
+  @@index([rating])
+  @@map("doctors")
+}
+
+/// Admin profile. Extends User with admin-specific information.
+model Admin {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  firstName String
+  lastName  String
+  phone     String?
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("admins")
+}
+
+// =============================================================================
+// DOCTOR SCHEDULING
+// =============================================================================
+
+/// Medical specialization (e.g., Cardiology, Dermatology).
+model Specialization {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now())
+
+  doctors Doctor[]
+
+  @@map("specializations")
+}
+
+/// Weekly recurring working hours for a doctor.
+/// Example: Monday 09:00-17:00
+model DoctorSchedule {
+  id        String   @id @default(cuid())
+  doctorId  String
+  dayOfWeek Int // 0=Sunday, 1=Monday, ..., 6=Saturday
+  startTime String // "09:00" (HH:mm, 24-hour)
+  endTime   String // "17:00" (HH:mm, 24-hour)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@unique([doctorId, dayOfWeek])
+  @@index([doctorId])
+  @@map("doctor_schedules")
+}
+
+/// Specific date exceptions for doctor availability.
+/// Used for vacation, one-off schedule changes, etc.
+/// If available=false, the entire day is blocked.
+/// If available=true with startTime/endTime, only that period is available.
+model DoctorAvailability {
+  id        String   @id @default(cuid())
+  doctorId  String
+  date      DateTime @db.Date
+  available Boolean  @default(false)
+  startTime String? // "09:00" - required if available=true
+  endTime   String? // "17:00" - required if available=true
+  reason    String? // "On vacation", "Conference", etc.
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@unique([doctorId, date])
+  @@index([doctorId, date])
+  @@map("doctor_availability")
+}
+
+// =============================================================================
+// APPOINTMENTS
+// =============================================================================
+
+/// A scheduled appointment between a patient and a doctor.
+model Appointment {
+  id           String            @id @default(cuid())
+  patientId    String
+  doctorId     String
+  startTime    DateTime // UTC timestamp
+  endTime      DateTime // UTC timestamp
+  status       AppointmentStatus @default(CONFIRMED)
+  type         AppointmentType   @default(IN_PERSON)
+  reason       String?
+  notes        String?
+  cancelReason String?
+  cancelledBy  String? // "PATIENT" or "DOCTOR"
+  cancelledAt  DateTime?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  // Relations
+  patient      Patient       @relation(fields: [patientId], references: [id], onDelete: Restrict)
+  doctor       Doctor        @relation(fields: [doctorId], references: [id], onDelete: Restrict)
+  consultation Consultation?
+  review       Review?
+
+  // Indexes for scheduling queries
+  @@unique([doctorId, startTime])
+  @@index([patientId])
+  @@index([doctorId])
+  @@index([startTime])
+  @@index([status])
+  @@index([doctorId, startTime, status])
+  @@map("appointments")
+}
+
+// =============================================================================
+// CONSULTATIONS & PRESCRIPTIONS
+// =============================================================================
+
+/// Medical consultation record created during/after an appointment.
+model Consultation {
+  id            String    @id @default(cuid())
+  appointmentId String    @unique
+  doctorId      String
+  patientId     String
+  diagnosis     String?
+  symptoms      String?
+  notes         String?
+  followUpDate  DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  appointment    Appointment     @relation(fields: [appointmentId], references: [id], onDelete: Restrict)
+  doctor         Doctor          @relation(fields: [doctorId], references: [id], onDelete: Restrict)
+  patient        Patient         @relation(fields: [patientId], references: [id], onDelete: Restrict)
+  prescriptions  Prescription[]
+  medicalRecords MedicalRecord[]
+
+  @@index([doctorId])
+  @@index([patientId])
+  @@map("consultations")
+}
+
+/// A prescription issued by a doctor to a patient.
+model Prescription {
+  id             String             @id @default(cuid())
+  consultationId String
+  doctorId       String
+  patientId      String
+  diagnosis      String
+  notes          String?
+  status         PrescriptionStatus @default(ACTIVE)
+  validUntil     DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  // Relations
+  consultation Consultation       @relation(fields: [consultationId], references: [id], onDelete: Restrict)
+  doctor       Doctor             @relation(fields: [doctorId], references: [id], onDelete: Restrict)
+  patient      Patient            @relation(fields: [patientId], references: [id], onDelete: Restrict)
+  items        PrescriptionItem[]
+
+  @@index([doctorId])
+  @@index([patientId])
+  @@index([consultationId])
+  @@map("prescriptions")
+}
+
+/// Individual medicine item within a prescription.
+model PrescriptionItem {
+  id             String  @id @default(cuid())
+  prescriptionId String
+  medicineId     String
+  dosage         String // e.g., "500mg"
+  frequency      String // e.g., "3 times daily"
+  duration       String // e.g., "7 days"
+  instructions   String? // e.g., "Take with food"
+
+  // Relations
+  prescription Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  medicine     Medicine     @relation(fields: [medicineId], references: [id], onDelete: Restrict)
+
+  @@index([prescriptionId])
+  @@index([medicineId])
+  @@map("prescription_items")
+}
+
+// =============================================================================
+// MEDICINES & PHARMACIES
+// =============================================================================
+
+/// Global medicine catalog. Not pharmacy-specific.
+model Medicine {
+  id                   String   @id @default(cuid())
+  name                 String
+  genericName          String?
+  category             String
+  manufacturer         String?
+  description          String?
+  dosageForms          String[] // ["tablet", "capsule", "syrup"]
+  sideEffects          String?
+  contraindications    String?
+  requiresPrescription Boolean  @default(true)
+  active               Boolean  @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  // Relations
+  prescriptionItems PrescriptionItem[]
+  inventories       PharmacyMedicine[]
+
+  @@index([name])
+  @@index([category])
+  @@index([active])
+  @@map("medicines")
+}
+
+/// A pharmacy entity.
+model Pharmacy {
+  id            String    @id @default(cuid())
+  name          String
+  address       String
+  phone         String?
+  email         String?
+  licenseNumber String    @unique
+  latitude      Float?
+  longitude     Float?
+  active        Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  // Relations
+  inventories PharmacyMedicine[]
+
+  @@index([active])
+  @@index([licenseNumber])
+  @@map("pharmacies")
+}
+
+/// Pharmacy-specific medicine inventory.
+/// Links a Pharmacy to a Medicine with stock and pricing.
+model PharmacyMedicine {
+  id         String   @id @default(cuid())
+  pharmacyId String
+  medicineId String
+  stock      Int      @default(0)
+  price      Decimal  @db.Decimal(10, 2)
+  inStock    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  pharmacy Pharmacy @relation(fields: [pharmacyId], references: [id], onDelete: Cascade)
+  medicine Medicine @relation(fields: [medicineId], references: [id], onDelete: Restrict)
+
+  @@unique([pharmacyId, medicineId])
+  @@index([pharmacyId])
+  @@index([medicineId])
+  @@map("pharmacy_medicines")
+}
+
+// =============================================================================
+// MEDICAL RECORDS
+// =============================================================================
+
+/// Patient medical records. Can be linked to a consultation or standalone.
+model MedicalRecord {
+  id             String     @id @default(cuid())
+  patientId      String
+  consultationId String?
+  doctorId       String?
+  type           RecordType
+  title          String
+  description    String?
+  attachments    String[] // File URLs
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  // Relations
+  patient      Patient       @relation(fields: [patientId], references: [id], onDelete: Restrict)
+  consultation Consultation? @relation(fields: [consultationId], references: [id], onDelete: SetNull)
+  doctor       Doctor?       @relation(fields: [doctorId], references: [id], onDelete: SetNull)
+
+  @@index([patientId])
+  @@index([consultationId])
+  @@index([doctorId])
+  @@map("medical_records")
+}
+
+// =============================================================================
+// REVIEWS & NOTIFICATIONS
+// =============================================================================
+
+/// Patient review of a doctor after a completed appointment.
+model Review {
+  id            String   @id @default(cuid())
+  patientId     String
+  doctorId      String
+  appointmentId String   @unique // One review per appointment
+  rating        Int // 1-5
+  comment       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  patient     Patient     @relation(fields: [patientId], references: [id], onDelete: Restrict)
+  doctor      Doctor      @relation(fields: [doctorId], references: [id], onDelete: Restrict)
+  appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Restrict)
+
+  @@index([doctorId])
+  @@index([patientId])
+  @@index([rating])
+  @@map("reviews")
+}
+
+/// User notifications.
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  type      NotificationType
+  read      Boolean          @default(false)
+  metadata  Json? // Flexible data (appointment ID, etc.)
+  createdAt DateTime         @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
+// =============================================================================
+// AUDIT LOGGING
+// =============================================================================
+
+/// Audit trail for compliance and debugging.
+model AuditLog {
+  id         String      @id @default(cuid())
+  userId     String?
+  action     AuditAction
+  entityType String // "User", "Appointment", "Prescription", etc.
+  entityId   String?
+  metadata   Json? // Action-specific data (old/new values, etc.)
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime    @default(now())
+
+  // Relations
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
