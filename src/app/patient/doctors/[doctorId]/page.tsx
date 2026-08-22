@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -12,14 +13,16 @@ import {
   MapPin,
   Stethoscope,
   AlertCircle,
+  X,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/features/patient/empty-state";
+import { BookingFlow } from "@/components/features/patient/booking-flow";
 import { useGetDoctorByIdQuery } from "@/store/api/doctorApi";
 import { DAYS_OF_WEEK } from "@/lib/constants";
 import { cn } from "@/utils/cn";
@@ -36,16 +39,13 @@ function formatTime(time: string): string {
 export default function DoctorProfilePage() {
   const params = useParams();
   const doctorId = params.doctorId as string;
+  const [showBooking, setShowBooking] = useState(false);
 
   const { data, isLoading, error } = useGetDoctorByIdQuery(doctorId);
   const doctor = data?.data;
 
-  // Loading state
-  if (isLoading) {
-    return <DoctorProfileSkeleton />;
-  }
+  if (isLoading) return <DoctorProfileSkeleton />;
 
-  // Error state
   if (error || !doctor) {
     return (
       <div className="max-w-4xl mx-auto">
@@ -69,35 +69,19 @@ export default function DoctorProfilePage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Back Navigation */}
-      <motion.div
-        initial={{ opacity: 0, x: -10 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.2 }}
-      >
-        <Link
-          href="/patient/doctors"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
+      <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.2 }}>
+        <Link href="/patient/doctors" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-4 w-4" />
           Back to Doctors
         </Link>
       </motion.div>
 
       {/* Header Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
         <Card>
           <CardContent className="p-6 md:p-8">
             <div className="flex flex-col sm:flex-row gap-6">
-              <Avatar
-                firstName={doctor.firstName}
-                lastName={doctor.lastName}
-                src={doctor.avatar}
-                size="xl"
-              />
+              <Avatar firstName={doctor.firstName} lastName={doctor.lastName} src={doctor.avatar} size="xl" />
               <div className="flex-1">
                 <div className="flex flex-wrap items-start gap-3 mb-2">
                   <h1 className="text-2xl md:text-3xl font-bold text-foreground">
@@ -110,20 +94,14 @@ export default function DoctorProfilePage() {
                     </Badge>
                   )}
                 </div>
-
                 {doctor.specialization && (
-                  <p className="text-lg text-muted-foreground mb-3">
-                    {doctor.specialization.name}
-                  </p>
+                  <p className="text-lg text-muted-foreground mb-3">{doctor.specialization.name}</p>
                 )}
-
                 <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                   {doctor.rating !== null && doctor.rating > 0 && (
                     <span className="flex items-center gap-1">
                       <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
-                      <span className="font-semibold text-foreground">
-                        {doctor.rating.toFixed(1)}
-                      </span>
+                      <span className="font-semibold text-foreground">{doctor.rating.toFixed(1)}</span>
                       <span>({doctor.totalReviews} reviews)</span>
                     </span>
                   )}
@@ -135,9 +113,7 @@ export default function DoctorProfilePage() {
                   )}
                   <span className="flex items-center gap-1">
                     <DollarSign className="h-4 w-4" />
-                    <span className="font-semibold text-foreground">
-                      ${doctor.consultationFee}
-                    </span>
+                    <span className="font-semibold text-foreground">${doctor.consultationFee}</span>
                     consultation
                   </span>
                 </div>
@@ -148,39 +124,66 @@ export default function DoctorProfilePage() {
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column — Bio & Details */}
+        {/* Left Column — Bio, Reviews & Booking */}
         <div className="lg:col-span-2 space-y-6">
           {/* About */}
           {doctor.bio && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.1 }}
-            >
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
               <Card>
                 <CardHeader>
                   <h2 className="text-lg font-semibold text-foreground">About</h2>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
-                    {doctor.bio}
-                  </p>
+                  <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{doctor.bio}</p>
                 </CardContent>
               </Card>
             </motion.div>
           )}
 
+          {/* Booking Flow */}
+          <AnimatePresence>
+            {showBooking && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Card className="border-violet-200 dark:border-violet-800">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                        <Calendar className="h-5 w-5 text-violet-600" />
+                        Book an Appointment
+                      </h2>
+                      <button
+                        onClick={() => setShowBooking(false)}
+                        className="p-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                        aria-label="Close booking"
+                      >
+                        <X className="h-5 w-5 text-muted-foreground" />
+                      </button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <BookingFlow
+                      doctorId={doctor.id}
+                      doctorName={`${doctor.firstName} ${doctor.lastName}`}
+                      specialization={doctor.specialization?.name || null}
+                      consultationFee={doctor.consultationFee}
+                      onClose={() => setShowBooking(false)}
+                    />
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Reviews */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.2 }}
-          >
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.2 }}>
             <Card>
               <CardHeader>
-                <h2 className="text-lg font-semibold text-foreground">
-                  Patient Reviews
-                </h2>
+                <h2 className="text-lg font-semibold text-foreground">Patient Reviews</h2>
               </CardHeader>
               <CardContent>
                 {doctor.reviews.length === 0 ? (
@@ -190,33 +193,22 @@ export default function DoctorProfilePage() {
                 ) : (
                   <div className="space-y-4">
                     {doctor.reviews.map((review) => (
-                      <div
-                        key={review.id}
-                        className="p-4 rounded-lg bg-muted/50 border border-border"
-                      >
+                      <div key={review.id} className="p-4 rounded-lg bg-muted/50 border border-border">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="font-medium text-sm text-foreground">
-                            {review.patientName}
-                          </span>
+                          <span className="font-medium text-sm text-foreground">{review.patientName}</span>
                           <div className="flex items-center gap-0.5">
                             {Array.from({ length: 5 }).map((_, i) => (
                               <Star
                                 key={i}
                                 className={cn(
                                   "h-3.5 w-3.5",
-                                  i < review.rating
-                                    ? "text-amber-500 fill-amber-500"
-                                    : "text-zinc-300 dark:text-zinc-600",
+                                  i < review.rating ? "text-amber-500 fill-amber-500" : "text-zinc-300 dark:text-zinc-600",
                                 )}
                               />
                             ))}
                           </div>
                         </div>
-                        {review.comment && (
-                          <p className="text-sm text-muted-foreground">
-                            {review.comment}
-                          </p>
-                        )}
+                        {review.comment && <p className="text-sm text-muted-foreground">{review.comment}</p>}
                         <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-2">
                           {new Date(review.createdAt).toLocaleDateString()}
                         </p>
@@ -229,14 +221,10 @@ export default function DoctorProfilePage() {
           </motion.div>
         </div>
 
-        {/* Right Column — Availability & Booking */}
+        {/* Right Column — Availability & Book Button */}
         <div className="space-y-6">
           {/* Availability Schedule */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.15 }}
-          >
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.15 }}>
             <Card>
               <CardHeader>
                 <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
@@ -247,17 +235,13 @@ export default function DoctorProfilePage() {
               <CardContent>
                 <div className="space-y-2">
                   {DAY_LABELS.map((day, idx) => {
-                    const schedule = doctor.schedules.find(
-                      (s) => s.dayOfWeek === idx,
-                    );
+                    const schedule = doctor.schedules.find((s) => s.dayOfWeek === idx);
                     return (
                       <div
                         key={idx}
                         className={cn(
                           "flex items-center justify-between py-2 px-3 rounded-lg text-sm",
-                          schedule
-                            ? "bg-emerald-50 dark:bg-emerald-950/30"
-                            : "bg-zinc-50 dark:bg-zinc-800/50",
+                          schedule ? "bg-emerald-50 dark:bg-emerald-950/30" : "bg-zinc-50 dark:bg-zinc-800/50",
                         )}
                       >
                         <span className="font-medium text-foreground">{day}</span>
@@ -277,36 +261,29 @@ export default function DoctorProfilePage() {
           </motion.div>
 
           {/* Consultation Fee & Book Button */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.25 }}
-          >
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.25 }}>
             <Card>
               <CardContent className="p-6 space-y-4">
                 <div className="text-center">
                   <p className="text-sm text-muted-foreground mb-1">Consultation Fee</p>
-                  <p className="text-3xl font-bold text-foreground">
-                    ${doctor.consultationFee}
-                  </p>
+                  <p className="text-3xl font-bold text-foreground">${doctor.consultationFee}</p>
                 </div>
-                <Button className="w-full" size="lg" disabled>
-                  <Stethoscope className="h-5 w-5" />
-                  Book Appointment
-                </Button>
-                <p className="text-xs text-center text-muted-foreground">
-                  Appointment booking coming soon
-                </p>
+                {!showBooking ? (
+                  <Button className="w-full" size="lg" onClick={() => setShowBooking(true)}>
+                    <Stethoscope className="h-5 w-5" />
+                    Book Appointment
+                  </Button>
+                ) : (
+                  <Button className="w-full" size="lg" variant="outline" onClick={() => setShowBooking(false)}>
+                    Close Booking
+                  </Button>
+                )}
               </CardContent>
             </Card>
           </motion.div>
 
           {/* Professional Details */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.3 }}
-          >
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.3 }}>
             <Card>
               <CardHeader>
                 <h2 className="text-lg font-semibold text-foreground">Details</h2>
@@ -326,9 +303,7 @@ export default function DoctorProfilePage() {
                     <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     <div>
                       <p className="text-muted-foreground">Experience</p>
-                      <p className="font-medium text-foreground">
-                        {doctor.yearsExperience} years
-                      </p>
+                      <p className="font-medium text-foreground">{doctor.yearsExperience} years</p>
                     </div>
                   </div>
                 )}
@@ -336,7 +311,7 @@ export default function DoctorProfilePage() {
                   <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <div>
                     <p className="text-muted-foreground">Type</p>
-                    <p className="font-medium text-foreground">In-Person Consultation</p>
+                    <p className="font-medium text-foreground">In-Person & Virtual</p>
                   </div>
                 </div>
               </CardContent>
@@ -347,10 +322,6 @@ export default function DoctorProfilePage() {
     </div>
   );
 }
-
-// =============================================================================
-// Loading Skeleton
-// =============================================================================
 
 function DoctorProfileSkeleton() {
   return (
@@ -374,33 +345,11 @@ function DoctorProfileSkeleton() {
       </Card>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <Card>
-            <CardContent className="p-6 space-y-3">
-              <Skeleton className="h-5 w-16" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-3/4" />
-            </CardContent>
-          </Card>
+          <Card><CardContent className="p-6 space-y-3"><Skeleton className="h-5 w-16" /><Skeleton className="h-4 w-full" /><Skeleton className="h-4 w-full" /></CardContent></Card>
         </div>
         <div className="space-y-6">
-          <Card>
-            <CardContent className="p-6 space-y-3">
-              {Array.from({ length: 7 }).map((_, i) => (
-                <div key={i} className="flex justify-between py-2">
-                  <Skeleton className="h-4 w-20" />
-                  <Skeleton className="h-4 w-28" />
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6 space-y-3">
-              <Skeleton className="h-4 w-24 mx-auto" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-            </CardContent>
-          </Card>
+          <Card><CardContent className="p-6 space-y-3">{Array.from({ length: 7 }).map((_, i) => <div key={i} className="flex justify-between py-2"><Skeleton className="h-4 w-20" /><Skeleton className="h-4 w-28" /></div>)}</CardContent></Card>
+          <Card><CardContent className="p-6 space-y-3"><Skeleton className="h-4 w-24 mx-auto" /><Skeleton className="h-10 w-full" /></CardContent></Card>
         </div>
       </div>
     </div>

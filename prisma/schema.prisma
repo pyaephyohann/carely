@@ -34,6 +34,7 @@ enum Gender {
 }
 
 enum AppointmentStatus {
+  PENDING
   CONFIRMED
   IN_PROGRESS
   COMPLETED
@@ -154,8 +155,9 @@ model Doctor {
   licenseNumber    String   @unique
   bio              String?
   consultationFee  Decimal  @db.Decimal(10, 2)
-  yearsExperience  Int?
-  timezone         String   @default("UTC")
+  yearsExperience       Int?
+  appointmentDuration  Int      @default(30) // minutes
+  timezone             String   @default("UTC")
   rating           Decimal? @db.Decimal(3, 2)
   totalReviews     Int      @default(0)
 

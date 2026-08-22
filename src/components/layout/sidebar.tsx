@@ -43,6 +43,7 @@ const roleNavItems: Record<UserRole, NavItem[]> = {
   DOCTOR: [
     { href: "/doctor/dashboard", label: "Dashboard", icon: <LayoutDashboard className="h-5 w-5" /> },
     { href: "/doctor/appointments", label: "Appointments", icon: <Calendar className="h-5 w-5" /> },
+    { href: "/doctor/schedule", label: "My Schedule", icon: <Settings className="h-5 w-5" /> },
     { href: "/doctor/patients", label: "Patients", icon: <Users className="h-5 w-5" /> },
     { href: "/doctor/consultations", label: "Consultations", icon: <Activity className="h-5 w-5" /> },
     { href: "/doctor/prescriptions", label: "Prescriptions", icon: <Pill className="h-5 w-5" /> },
