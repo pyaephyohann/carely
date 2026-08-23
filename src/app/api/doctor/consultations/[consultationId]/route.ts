@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { logError } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { requireDoctor } from "@/lib/auth-helpers";
 import { requireDatabase, apiError, apiSuccess } from "@/lib/api";
@@ -115,7 +116,7 @@ export async function GET(
       })),
     });
   } catch (error) {
-    console.error("Error fetching consultation:", error);
+    logError("Error fetching consultation:", error);
     return apiError("Failed to fetch consultation", "INTERNAL_ERROR", 500);
   }
 }
@@ -189,7 +190,7 @@ export async function PATCH(
       updatedAt: updated.updatedAt.toISOString(),
     });
   } catch (error) {
-    console.error("Error updating consultation:", error);
+    logError("Error updating consultation:", error);
     return apiError("Failed to update consultation", "INTERNAL_ERROR", 500);
   }
 }

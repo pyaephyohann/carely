@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { logError } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-helpers";
 import { requireDatabase, apiError, apiSuccess } from "@/lib/api";
@@ -60,7 +61,7 @@ export async function GET(request: NextRequest) {
       headers: response.headers,
     });
   } catch (error) {
-    console.error("Error fetching notifications:", error);
+    logError("Error fetching notifications:", error);
     return apiError("Failed to fetch notifications", "INTERNAL_ERROR", 500);
   }
 }

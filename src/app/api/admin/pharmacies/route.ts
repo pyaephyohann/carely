@@ -1,5 +1,6 @@
 
 import { prisma } from "@/lib/prisma";
+import { logError } from "@/lib/logger";
 import { requireAdmin } from "@/lib/auth-helpers";
 import { apiSuccess, apiError, requireDatabase } from "@/lib/api";
 
@@ -78,7 +79,7 @@ export async function GET(request: Request) {
       }
     );
   } catch (error) {
-    console.error("Admin pharmacies error:", error);
+    logError("Admin pharmacies error:", error);
     return apiError("Failed to load pharmacies", "PHARMACIES_ERROR", 500);
   }
 }

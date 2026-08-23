@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { logError } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { requireDatabase, apiError, apiSuccess } from "@/lib/api";
 
@@ -56,7 +57,7 @@ export async function GET(
       createdAt: pharmacy.createdAt.toISOString(),
     });
   } catch (error) {
-    console.error("Error fetching pharmacy:", error);
+    logError("Error fetching pharmacy:", error);
     return apiError("Failed to fetch pharmacy", "INTERNAL_ERROR", 500);
   }
 }

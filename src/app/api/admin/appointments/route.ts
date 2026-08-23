@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logError } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-helpers";
 import { apiSuccess, apiError, requireDatabase } from "@/lib/api";
@@ -80,7 +81,7 @@ export async function GET(request: Request) {
       }
     );
   } catch (error) {
-    console.error("Admin appointments error:", error);
+    logError("Admin appointments error:", error);
     return apiError("Failed to load appointments", "APPOINTMENTS_ERROR", 500);
   }
 }

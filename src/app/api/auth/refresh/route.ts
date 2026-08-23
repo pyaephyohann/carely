@@ -3,11 +3,22 @@ import {
   getRefreshTokenFromCookies,
   verifyRefreshToken,
   signAccessToken,
+  signRefreshToken,
   setAccessTokenCookie,
+  setRefreshTokenCookie,
 } from "@/lib/auth";
 import { requireDatabase, apiError, apiSuccess } from "@/lib/api";
+import { rateLimit, getRateLimitKey } from "@/lib/rate-limit";
+import { logError } from "@/lib/logger";
 
 export async function POST(request: Request) {
+  // Rate limit: 20 refresh attempts per minute per IP
+  const rlKey = getRateLimitKey(request, "refresh");
+  const rl = rateLimit(rlKey, { max: 20, windowMs: 60_000 });
+  if (!rl.allowed) {
+    return apiError("Too many requests. Please try again later.", "RATE_LIMITED", 429);
+  }
+
   try {
     const dbCheck = requireDatabase();
     if (dbCheck) return dbCheck;
@@ -40,23 +51,27 @@ export async function POST(request: Request) {
       return apiError("Account is not active", "ACCOUNT_INACTIVE", 403);
     }
 
-    // Issue new access token
+    // Issue new access token AND rotate refresh token
     const accessToken = await signAccessToken({
       userId: user.id,
       email: user.email,
       role: user.role,
     });
+    const newRefreshToken = await signRefreshToken(user.id);
 
     const response = apiSuccess({ accessToken });
 
-    // Update access token cookie
-    const existingCookies = response.headers.get("set-cookie") || "";
-    const newCookies = setAccessTokenCookie(existingCookies, accessToken);
+    // Rotate cookies: new access token + new refresh token
+    let newCookies = setAccessTokenCookie(
+      response.headers.get("set-cookie") || "",
+      accessToken,
+    );
+    newCookies = setRefreshTokenCookie(newCookies, newRefreshToken);
     response.headers.set("set-cookie", newCookies);
 
     return response;
   } catch (error) {
-    console.error("Token refresh error:", error);
+    logError("Token refresh error", error);
     return apiError("An unexpected error occurred");
   }
 }

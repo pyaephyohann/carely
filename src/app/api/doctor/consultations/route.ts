@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { logError } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { requireDoctor } from "@/lib/auth-helpers";
 import { requireDatabase, apiError, apiSuccess } from "@/lib/api";
@@ -232,7 +233,7 @@ export async function POST(request: NextRequest) {
       201,
     );
   } catch (error) {
-    console.error("Error creating consultation:", error);
+    logError("Error creating consultation:", error);
     return apiError("Failed to create consultation", "INTERNAL_ERROR", 500);
   }
 }

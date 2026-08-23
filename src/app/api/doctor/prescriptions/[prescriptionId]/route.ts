@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { logError } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { requireDoctor } from "@/lib/auth-helpers";
 import { requireDatabase, apiError, apiSuccess } from "@/lib/api";
@@ -101,7 +102,7 @@ export async function GET(
       })),
     });
   } catch (error) {
-    console.error("Error fetching prescription:", error);
+    logError("Error fetching prescription:", error);
     return apiError("Failed to fetch prescription", "INTERNAL_ERROR", 500);
   }
 }
@@ -251,7 +252,7 @@ export async function PATCH(
       })),
     });
   } catch (error) {
-    console.error("Error updating prescription:", error);
+    logError("Error updating prescription:", error);
     return apiError("Failed to update prescription", "INTERNAL_ERROR", 500);
   }
 }

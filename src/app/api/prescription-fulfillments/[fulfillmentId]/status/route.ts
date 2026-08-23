@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { logError } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { requirePharmacy } from "@/lib/auth-helpers";
 import { requireDatabase, apiError, apiSuccess } from "@/lib/api";
@@ -203,7 +204,7 @@ export async function PATCH(
       updatedAt: updated.updatedAt.toISOString(),
     });
   } catch (error) {
-    console.error("Error updating fulfillment status:", error);
+    logError("Error updating fulfillment status:", error);
     return apiError("Failed to update status", "INTERNAL_ERROR", 500);
   }
 }

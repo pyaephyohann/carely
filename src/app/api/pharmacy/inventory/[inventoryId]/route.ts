@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { logError } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { requirePharmacy } from "@/lib/auth-helpers";
 import { requireDatabase, apiError, apiSuccess } from "@/lib/api";
@@ -148,7 +149,7 @@ export async function PATCH(
       inStock: updated.inStock,
     });
   } catch (error) {
-    console.error("Error updating inventory:", error);
+    logError("Error updating inventory:", error);
     return apiError("Failed to update inventory", "INTERNAL_ERROR", 500);
   }
 }
@@ -223,7 +224,7 @@ export async function DELETE(
 
     return apiSuccess({ deleted: true });
   } catch (error) {
-    console.error("Error deleting inventory:", error);
+    logError("Error deleting inventory:", error);
     return apiError("Failed to remove inventory item", "INTERNAL_ERROR", 500);
   }
 }

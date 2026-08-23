@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { logError } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { requirePharmacy } from "@/lib/auth-helpers";
 import { requireDatabase, apiError, apiSuccess } from "@/lib/api";
@@ -92,7 +93,7 @@ export async function GET(request: NextRequest) {
       },
     );
   } catch (error) {
-    console.error("Error fetching pharmacy prescriptions:", error);
+    logError("Error fetching pharmacy prescriptions:", error);
     return apiError("Failed to fetch prescriptions", "INTERNAL_ERROR", 500);
   }
 }

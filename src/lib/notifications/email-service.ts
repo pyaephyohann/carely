@@ -1,3 +1,4 @@
+import { logError } from "@/lib/logger";
 /**
  * Email service with provider abstraction.
  *
@@ -99,7 +100,7 @@ export async function sendNotificationEmail(input: SendEmailInput): Promise<void
       logId = log.id;
     }
   } catch (err) {
-    console.error("[Email] Failed to create delivery log:", err);
+    logError("[Email] Failed to create delivery log:", err);
   }
 
   // Send via provider
@@ -119,7 +120,7 @@ export async function sendNotificationEmail(input: SendEmailInput): Promise<void
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error(`[Email] Delivery failed: ${errorMessage}`);
+    logError(`[Email] Delivery failed: ${errorMessage}`);
 
     // Update log: failure
     if (logId && prisma) {

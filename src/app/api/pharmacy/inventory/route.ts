@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { logError } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { requirePharmacy } from "@/lib/auth-helpers";
 import { requireDatabase, apiError, apiSuccess } from "@/lib/api";
@@ -101,7 +102,7 @@ export async function GET(request: NextRequest) {
       },
     );
   } catch (error) {
-    console.error("Error fetching inventory:", error);
+    logError("Error fetching inventory:", error);
     return apiError("Failed to fetch inventory", "INTERNAL_ERROR", 500);
   }
 }
@@ -201,7 +202,7 @@ export async function POST(request: NextRequest) {
       201,
     );
   } catch (error) {
-    console.error("Error adding inventory:", error);
+    logError("Error adding inventory:", error);
     return apiError("Failed to add inventory item", "INTERNAL_ERROR", 500);
   }
 }

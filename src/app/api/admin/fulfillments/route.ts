@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logError } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-helpers";
 import { apiSuccess, apiError, requireDatabase } from "@/lib/api";
@@ -42,7 +43,6 @@ export async function GET(request: Request) {
           prescription: {
             select: {
               id: true,
-              diagnosis: true,
               status: true,
               createdAt: true,
               items: { select: { id: true } },
@@ -69,7 +69,6 @@ export async function GET(request: Request) {
         prescription: f.prescription
           ? {
               id: f.prescription.id,
-              diagnosis: f.prescription.diagnosis,
               status: f.prescription.status,
               createdAt: f.prescription.createdAt.toISOString(),
               itemCount: f.prescription.items.length,
@@ -88,7 +87,7 @@ export async function GET(request: Request) {
       }
     );
   } catch (error) {
-    console.error("Admin fulfillments error:", error);
+    logError("Admin fulfillments error:", error);
     return apiError("Failed to load fulfillments", "FULFILLMENTS_ERROR", 500);
   }
 }

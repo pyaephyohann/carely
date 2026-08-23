@@ -103,8 +103,6 @@ export default function AdminFulfillmentsPage() {
                       {fulfillment.prescription && (
                         <>
                           <span>·</span>
-                          <span>{fulfillment.prescription.diagnosis.slice(0, 40)}</span>
-                          <span>·</span>
                           <span>{fulfillment.itemCount} items</span>
                         </>
                       )}

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logError } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-helpers";
 import { apiSuccess, apiError, requireDatabase } from "@/lib/api";
@@ -84,7 +85,7 @@ export async function GET(request: Request) {
       }
     );
   } catch (error) {
-    console.error("Admin doctors error:", error);
+    logError("Admin doctors error:", error);
     return apiError("Failed to load doctors", "DOCTORS_ERROR", 500);
   }
 }

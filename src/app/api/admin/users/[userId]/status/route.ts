@@ -1,5 +1,6 @@
 
 import { prisma } from "@/lib/prisma";
+import { logError } from "@/lib/logger";
 import { requireAdmin } from "@/lib/auth-helpers";
 import { apiSuccess, apiError, requireDatabase } from "@/lib/api";
 
@@ -66,7 +67,7 @@ export async function PATCH(
       updatedAt: updated.updatedAt.toISOString(),
     });
   } catch (error) {
-    console.error("Admin user status error:", error);
+    logError("Admin user status error:", error);
     return apiError("Failed to update user status", "STATUS_ERROR", 500);
   }
 }

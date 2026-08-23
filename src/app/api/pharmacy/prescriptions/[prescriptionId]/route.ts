@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { logError } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { requirePharmacy } from "@/lib/auth-helpers";
 import { requireDatabase, apiError, apiSuccess } from "@/lib/api";
@@ -138,7 +139,7 @@ export async function GET(
       updatedAt: fulfillment.updatedAt.toISOString(),
     });
   } catch (error) {
-    console.error("Error fetching fulfillment detail:", error);
+    logError("Error fetching fulfillment detail:", error);
     return apiError("Failed to fetch fulfillment detail", "INTERNAL_ERROR", 500);
   }
 }

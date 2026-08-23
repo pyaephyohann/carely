@@ -7,6 +7,8 @@ import {
   setAuthCookies,
 } from "@/lib/auth";
 import { requireDatabase, apiError, apiSuccess } from "@/lib/api";
+import { rateLimit, getRateLimitKey } from "@/lib/rate-limit";
+import { logError } from "@/lib/logger";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -15,6 +17,13 @@ const loginSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  // Rate limit: 10 login attempts per minute per IP
+  const rlKey = getRateLimitKey(request, "login");
+  const rl = rateLimit(rlKey, { max: 10, windowMs: 60_000 });
+  if (!rl.allowed) {
+    return apiError("Too many login attempts. Please try again later.", "RATE_LIMITED", 429);
+  }
+
   try {
     const dbCheck = requireDatabase();
     if (dbCheck) return dbCheck;
@@ -99,7 +108,7 @@ export async function POST(request: Request) {
 
     return response;
   } catch (error) {
-    console.error("Login error:", error);
+    logError("Login error", error);
     return apiError("An unexpected error occurred");
   }
 }

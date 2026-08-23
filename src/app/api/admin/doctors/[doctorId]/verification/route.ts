@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logError } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-helpers";
 import { apiSuccess, apiError, requireDatabase } from "@/lib/api";
@@ -99,7 +100,7 @@ export async function PATCH(
       verifiedAt: updated.verifiedAt?.toISOString() || null,
     });
   } catch (error) {
-    console.error("Admin doctor verification error:", error);
+    logError("Admin doctor verification error:", error);
     return apiError("Failed to update verification", "VERIFICATION_ERROR", 500);
   }
 }

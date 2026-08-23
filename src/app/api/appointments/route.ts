@@ -6,6 +6,7 @@ import { generateAvailableSlots } from "@/lib/scheduling";
 import { onAppointmentBooked } from "@/lib/notifications/events";
 import { scheduleAppointmentReminders } from "@/lib/notifications/reminder-service";
 import { Prisma } from "@prisma/client";
+import { logError } from "@/lib/logger";
 
 // =============================================================================
 // POST /api/appointments — Create an appointment (with transaction)
@@ -230,7 +231,7 @@ export async function POST(request: NextRequest) {
         409,
       );
     }
-    console.error("Booking error:", error);
+    logError("Booking error", error);
     return apiError("Failed to create appointment", "BOOKING_FAILED", 500);
   }
 }

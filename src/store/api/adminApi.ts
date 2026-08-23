@@ -135,7 +135,7 @@ export interface AdminFulfillmentListItem {
   updatedAt: string;
   pharmacy: { id: string; name: string; address: string } | null;
   patient: { id: string; name: string; email: string };
-  prescription: { id: string; diagnosis: string; status: string; createdAt: string; itemCount: number } | null;
+  prescription: { id: string; status: string; createdAt: string; itemCount: number } | null;
   itemCount: number;
   fulfilledCount: number;
 }

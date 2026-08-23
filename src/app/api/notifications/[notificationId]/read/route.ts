@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { logError } from "@/lib/logger";
 import { requireAuth } from "@/lib/auth-helpers";
 import { requireDatabase, apiError, apiSuccess } from "@/lib/api";
 import { markAsRead } from "@/lib/notifications";
@@ -28,7 +29,7 @@ export async function POST(
 
     return apiSuccess({ read: true });
   } catch (error) {
-    console.error("Error marking notification as read:", error);
+    logError("Error marking notification as read:", error);
     return apiError("Failed to mark notification as read", "INTERNAL_ERROR", 500);
   }
 }

@@ -1,5 +1,6 @@
 
 import { Prisma } from "@prisma/client";
+import { logError } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-helpers";
 import { apiSuccess, apiError, requireDatabase } from "@/lib/api";
@@ -85,7 +86,7 @@ export async function PATCH(
       active: updated.active,
     });
   } catch (error) {
-    console.error("Admin pharmacy verification error:", error);
+    logError("Admin pharmacy verification error:", error);
     return apiError("Failed to update pharmacy", "VERIFICATION_ERROR", 500);
   }
 }

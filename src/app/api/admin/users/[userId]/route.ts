@@ -1,5 +1,6 @@
 
 import { prisma } from "@/lib/prisma";
+import { logError } from "@/lib/logger";
 import { requireAdmin } from "@/lib/auth-helpers";
 import { apiSuccess, apiError, requireDatabase } from "@/lib/api";
 
@@ -114,7 +115,7 @@ export async function GET(
       pharmacyStaff: user.pharmacyStaff,
     });
   } catch (error) {
-    console.error("Admin user detail error:", error);
+    logError("Admin user detail error:", error);
     return apiError("Failed to load user", "USER_ERROR", 500);
   }
 }

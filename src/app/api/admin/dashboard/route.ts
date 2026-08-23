@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logError } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-helpers";
 import { apiSuccess, apiError, requireDatabase } from "@/lib/api";
@@ -119,7 +120,7 @@ export async function GET(request: Request) {
       })),
     });
   } catch (error) {
-    console.error("Admin dashboard error:", error);
+    logError("Admin dashboard error:", error);
     return apiError("Failed to load dashboard data", "DASHBOARD_ERROR", 500);
   }
 }

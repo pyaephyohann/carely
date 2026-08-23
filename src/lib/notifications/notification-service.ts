@@ -1,3 +1,4 @@
+import { logError } from "@/lib/logger";
 /**
  * Centralized notification service.
  *
@@ -34,7 +35,7 @@ export async function createNotification(input: CreateNotificationInput): Promis
 
     return notification.id;
   } catch (error) {
-    console.error("Failed to create notification:", error);
+    logError("Failed to create notification:", error);
     return null;
   }
 }
@@ -69,7 +70,7 @@ export async function notifyAndEmail(
       },
     }).catch((err) => {
       // Email failure must NOT break the operation
-      console.error("Email delivery failed (non-critical):", err);
+      logError("Email delivery failed (non-critical):", err);
     });
   }
 }
@@ -95,7 +96,7 @@ export async function createNotifications(inputs: CreateNotificationInput[]): Pr
 
     return Array.from({ length: created.count }, (_, i) => `batch-${i}`);
   } catch (error) {
-    console.error("Failed to create batch notifications:", error);
+    logError("Failed to create batch notifications:", error);
     return [];
   }
 }
@@ -115,7 +116,7 @@ export async function markAsRead(notificationId: string, userId: string): Promis
 
     return result.count > 0;
   } catch (error) {
-    console.error("Failed to mark notification as read:", error);
+    logError("Failed to mark notification as read:", error);
     return false;
   }
 }
@@ -131,7 +132,7 @@ export async function markAllAsRead(userId: string): Promise<number> {
 
     return result.count;
   } catch (error) {
-    console.error("Failed to mark all notifications as read:", error);
+    logError("Failed to mark all notifications as read:", error);
     return 0;
   }
 }
@@ -144,7 +145,7 @@ export async function getUnreadCount(userId: string): Promise<number> {
       where: { userId, read: false },
     });
   } catch (error) {
-    console.error("Failed to get unread count:", error);
+    logError("Failed to get unread count:", error);
     return 0;
   }
 }
@@ -170,7 +171,7 @@ export async function getNotificationPreferences(userId: string) {
 
     return prefs;
   } catch (error) {
-    console.error("Failed to get notification preferences:", error);
+    logError("Failed to get notification preferences:", error);
     return null;
   }
 }
@@ -194,7 +195,7 @@ export async function updateNotificationPreferences(
       update: updates,
     });
   } catch (error) {
-    console.error("Failed to update notification preferences:", error);
+    logError("Failed to update notification preferences:", error);
     return null;
   }
 }

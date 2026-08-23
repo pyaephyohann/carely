@@ -1,3 +1,4 @@
+import { logError } from "@/lib/logger";
 /**
  * Database-backed reminder scheduling service.
  *
@@ -76,7 +77,7 @@ export async function scheduleAppointmentReminders(data: {
       });
     }
   } catch (error) {
-    console.error("Failed to schedule reminders:", error);
+    logError("Failed to schedule reminders:", error);
   }
 }
 
@@ -105,12 +106,12 @@ export async function processDueReminders(): Promise<{ processed: number; failed
         await processReminder(reminder);
         processed++;
       } catch (error) {
-        console.error(`Failed to process reminder ${reminder.id}:`, error);
+        logError(`Failed to process reminder ${reminder.id}:`, error);
         failed++;
       }
     }
   } catch (error) {
-    console.error("Failed to fetch due reminders:", error);
+    logError("Failed to fetch due reminders:", error);
   }
 
   return { processed, failed };
@@ -206,6 +207,6 @@ export async function cancelAppointmentReminders(appointmentId: string): Promise
       data: { sent: true, sentAt: new Date() }, // Mark as sent to prevent processing
     });
   } catch (error) {
-    console.error("Failed to cancel reminders:", error);
+    logError("Failed to cancel reminders:", error);
   }
 }

@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { logError } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { requireDatabase, apiError, apiSuccess } from "@/lib/api";
 
@@ -75,7 +76,7 @@ export async function GET(request: NextRequest) {
       },
     );
   } catch (error) {
-    console.error("Error searching medicines:", error);
+    logError("Error searching medicines:", error);
     return apiError("Failed to search medicines", "INTERNAL_ERROR", 500);
   }
 }

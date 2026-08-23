@@ -7,6 +7,8 @@ import {
   setAuthCookies,
 } from "@/lib/auth";
 import { requireDatabase, apiError, apiSuccess } from "@/lib/api";
+import { rateLimit, getRateLimitKey } from "@/lib/rate-limit";
+import { logError } from "@/lib/logger";
 
 const registerSchema = z
   .object({
@@ -32,6 +34,13 @@ const registerSchema = z
   });
 
 export async function POST(request: Request) {
+  // Rate limit: 5 registration attempts per minute per IP
+  const rlKey = getRateLimitKey(request, "register");
+  const rl = rateLimit(rlKey, { max: 5, windowMs: 60_000 });
+  if (!rl.allowed) {
+    return apiError("Too many registration attempts. Please try again later.", "RATE_LIMITED", 429);
+  }
+
   try {
     const dbCheck = requireDatabase();
     if (dbCheck) return dbCheck;
@@ -160,7 +169,7 @@ export async function POST(request: Request) {
         return apiError("A doctor with this license number already exists", "LICENSE_EXISTS", 409);
       }
     }
-    console.error("Registration error:", error);
+    logError("Registration error", error);
     return apiError("An unexpected error occurred");
   }
 }

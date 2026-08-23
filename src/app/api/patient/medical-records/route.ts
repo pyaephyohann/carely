@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { logError } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { requirePatient } from "@/lib/auth-helpers";
 import { requireDatabase, apiError, apiSuccess } from "@/lib/api";
@@ -94,7 +95,7 @@ export async function GET(request: NextRequest) {
       },
     );
   } catch (error) {
-    console.error("Error fetching medical records:", error);
+    logError("Error fetching medical records:", error);
     return apiError("Failed to fetch medical records", "INTERNAL_ERROR", 500);
   }
 }

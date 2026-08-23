@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { logError } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-helpers";
 import { requireDatabase, apiError, apiSuccess } from "@/lib/api";
@@ -139,7 +140,7 @@ export async function POST(request: NextRequest) {
       201,
     );
   } catch (error) {
-    console.error("Error creating fulfillment:", error);
+    logError("Error creating fulfillment:", error);
     return apiError("Failed to submit prescription for fulfillment", "INTERNAL_ERROR", 500);
   }
 }
@@ -213,7 +214,7 @@ export async function GET(request: NextRequest) {
       },
     );
   } catch (error) {
-    console.error("Error fetching fulfillments:", error);
+    logError("Error fetching fulfillments:", error);
     return apiError("Failed to fetch fulfillments", "INTERNAL_ERROR", 500);
   }
 }

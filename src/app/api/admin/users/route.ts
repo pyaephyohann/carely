@@ -1,5 +1,6 @@
 
 import { prisma } from "@/lib/prisma";
+import { logError } from "@/lib/logger";
 import { requireAdmin } from "@/lib/auth-helpers";
 import { apiSuccess, apiError, requireDatabase } from "@/lib/api";
 
@@ -109,7 +110,7 @@ export async function GET(request: Request) {
       }
     );
   } catch (error) {
-    console.error("Admin users error:", error);
+    logError("Admin users error:", error);
     return apiError("Failed to load users", "USERS_ERROR", 500);
   }
 }
