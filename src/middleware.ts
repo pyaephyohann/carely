@@ -11,12 +11,14 @@ import {
 
 const PATIENT_PREFIXES = ["/patient"];
 const DOCTOR_PREFIXES = ["/doctor"];
+const PHARMACY_PREFIXES = ["/pharmacy"];
 const ADMIN_PREFIXES = ["/admin"];
 const AUTH_PREFIXES = ["/login", "/register", "/forgot-password"];
 
-function getRouteType(pathname: string): "patient" | "doctor" | "admin" | "auth" | "public" {
+function getRouteType(pathname: string): "patient" | "doctor" | "pharmacy" | "admin" | "auth" | "public" {
   if (PATIENT_PREFIXES.some((p) => pathname.startsWith(p))) return "patient";
   if (DOCTOR_PREFIXES.some((p) => pathname.startsWith(p))) return "doctor";
+  if (PHARMACY_PREFIXES.some((p) => pathname.startsWith(p))) return "pharmacy";
   if (ADMIN_PREFIXES.some((p) => pathname.startsWith(p))) return "admin";
   if (AUTH_PREFIXES.some((p) => pathname.startsWith(p))) return "auth";
   return "public";
@@ -25,18 +27,21 @@ function getRouteType(pathname: string): "patient" | "doctor" | "admin" | "auth"
 const ROLE_LOGIN_MAP: Record<string, string> = {
   patient: "/login",
   doctor: "/login",
+  pharmacy: "/login",
   admin: "/login",
 };
 
 const ROLE_HOME_MAP: Record<string, string> = {
   PATIENT: "/patient/dashboard",
   DOCTOR: "/doctor/dashboard",
+  PHARMACY: "/pharmacy/dashboard",
   ADMIN: "/admin/dashboard",
 };
 
 const ROLE_ACCESS_MAP: Record<string, string[]> = {
   PATIENT: PATIENT_PREFIXES,
   DOCTOR: DOCTOR_PREFIXES,
+  PHARMACY: PHARMACY_PREFIXES,
   ADMIN: ADMIN_PREFIXES,
 };
 

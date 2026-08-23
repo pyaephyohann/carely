@@ -82,6 +82,10 @@ export async function requireAdmin(request: NextRequest): Promise<AuthResult> {
   return requireRole(request, "ADMIN");
 }
 
+export async function requirePharmacy(request: NextRequest): Promise<AuthResult> {
+  return requireRole(request, "PHARMACY");
+}
+
 export async function requireDoctorOrAdmin(request: NextRequest): Promise<AuthResult> {
   return requireRole(request, "DOCTOR", "ADMIN");
 }

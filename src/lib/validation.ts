@@ -109,6 +109,38 @@ export const doctorSearchSchema = z.object({
   sortOrder: z.enum(["asc", "desc"]).optional(),
 });
 
+// Pharmacy & Inventory Schemas
+export const inventoryItemSchema = z.object({
+  medicineId: z.string().min(1, "Medicine is required"),
+  stock: z.number().min(0, "Stock cannot be negative"),
+  price: z.number().min(0, "Price must be positive"),
+  minimumStock: z.number().min(0).optional(),
+});
+
+export const inventoryUpdateSchema = z.object({
+  stock: z.number().min(0, "Stock cannot be negative").optional(),
+  price: z.number().min(0, "Price must be positive").optional(),
+  minimumStock: z.number().min(0).optional(),
+  inStock: z.boolean().optional(),
+});
+
+export const stockAdjustmentSchema = z.object({
+  quantity: z.number().int(),
+  type: z.enum(["PURCHASE", "ADJUSTMENT", "RETURN"]),
+  reason: z.string().max(500).optional(),
+});
+
+// Fulfillment Schemas
+export const createFulfillmentSchema = z.object({
+  prescriptionId: z.string().min(1, "Prescription is required"),
+  pharmacyId: z.string().min(1, "Pharmacy is required"),
+});
+
+export const updateFulfillmentStatusSchema = z.object({
+  status: z.enum(["ACCEPTED", "PREPARING", "READY", "COMPLETED", "REJECTED", "CANCELLED"]),
+  rejectReason: z.string().max(500).optional(),
+});
+
 // Types derived from schemas
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
@@ -119,3 +151,8 @@ export type ConsultationInput = z.infer<typeof consultationSchema>;
 export type PrescriptionInput = z.infer<typeof prescriptionSchema>;
 export type PrescriptionItemInput = z.infer<typeof prescriptionItemSchema>;
 export type DoctorSearchInput = z.infer<typeof doctorSearchSchema>;
+export type InventoryItemInput = z.infer<typeof inventoryItemSchema>;
+export type InventoryUpdateInput = z.infer<typeof inventoryUpdateSchema>;
+export type StockAdjustmentInput = z.infer<typeof stockAdjustmentSchema>;
+export type CreateFulfillmentInput = z.infer<typeof createFulfillmentSchema>;
+export type UpdateFulfillmentStatusInput = z.infer<typeof updateFulfillmentStatusSchema>;

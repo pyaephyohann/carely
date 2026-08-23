@@ -46,6 +46,12 @@ export const ROUTES = {
     CONSULTATIONS: "/doctor/consultations",
     PRESCRIPTIONS: "/doctor/prescriptions",
   },
+  PHARMACY: {
+    DASHBOARD: "/pharmacy/dashboard",
+    INVENTORY: "/pharmacy/inventory",
+    PRESCRIPTIONS: "/pharmacy/prescriptions",
+    PROFILE: "/pharmacy/profile",
+  },
   ADMIN: {
     DASHBOARD: "/admin/dashboard",
     USERS: "/admin/users",

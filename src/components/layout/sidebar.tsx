@@ -38,7 +38,15 @@ const roleNavItems: Record<UserRole, NavItem[]> = {
     { href: "/patient/appointments", label: "Appointments", icon: <Calendar className="h-5 w-5" /> },
     { href: "/patient/prescriptions", label: "Prescriptions", icon: <FileText className="h-5 w-5" /> },
     { href: "/patient/records", label: "Medical Records", icon: <ClipboardList className="h-5 w-5" /> },
+    { href: "/patient/pharmacies", label: "Find Pharmacy", icon: <Building2 className="h-5 w-5" /> },
+    { href: "/patient/pharmacy-orders", label: "Pharmacy Orders", icon: <Activity className="h-5 w-5" /> },
     { href: "/patient/profile", label: "Profile", icon: <UserCircle className="h-5 w-5" /> },
+  ],
+  PHARMACY: [
+    { href: "/pharmacy/dashboard", label: "Dashboard", icon: <LayoutDashboard className="h-5 w-5" /> },
+    { href: "/pharmacy/inventory", label: "Inventory", icon: <Pill className="h-5 w-5" /> },
+    { href: "/pharmacy/prescriptions", label: "Prescriptions", icon: <FileText className="h-5 w-5" /> },
+    { href: "/pharmacy/profile", label: "Profile", icon: <UserCircle className="h-5 w-5" /> },
   ],
   DOCTOR: [
     { href: "/doctor/dashboard", label: "Dashboard", icon: <LayoutDashboard className="h-5 w-5" /> },

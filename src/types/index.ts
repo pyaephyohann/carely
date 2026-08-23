@@ -1,5 +1,5 @@
 // User & Auth Types
-export type UserRole = "PATIENT" | "DOCTOR" | "ADMIN";
+export type UserRole = "PATIENT" | "DOCTOR" | "PHARMACY" | "ADMIN";
 
 export type UserStatus = "ACTIVE" | "INACTIVE" | "SUSPENDED" | "PENDING_VERIFICATION";
 
@@ -262,4 +262,70 @@ export interface AppointmentSearchParams {
   dateTo?: string;
   page?: number;
   limit?: number;
+}
+
+// Pharmacy Types
+export type FulfillmentStatus = "PENDING" | "ACCEPTED" | "PREPARING" | "READY" | "COMPLETED" | "REJECTED" | "CANCELLED";
+
+export interface Pharmacy {
+  id: string;
+  name: string;
+  description?: string;
+  address: string;
+  phone?: string;
+  email?: string;
+  logo?: string;
+  licenseNumber: string;
+  verified: boolean;
+  active: boolean;
+  openingHours?: Record<string, { open: string; close: string } | null>;
+  createdAt: string;
+}
+
+export interface PharmacyMedicine {
+  id: string;
+  pharmacyId: string;
+  medicineId: string;
+  stock: number;
+  price: number;
+  minimumStock: number;
+  inStock: boolean;
+  medicine?: Medicine;
+}
+
+export interface PrescriptionFulfillment {
+  id: string;
+  prescriptionId: string;
+  patientId: string;
+  pharmacyId: string;
+  status: FulfillmentStatus;
+  rejectReason?: string;
+  pharmacy?: Pharmacy;
+  prescription?: Prescription;
+  patient?: Patient;
+  items?: PrescriptionFulfillmentItem[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PrescriptionFulfillmentItem {
+  id: string;
+  fulfillmentId: string;
+  pharmacyMedicineId?: string;
+  medicineName: string;
+  dosage: string;
+  quantity: number;
+  fulfilled: boolean;
+}
+
+export interface InventoryTransaction {
+  id: string;
+  pharmacyMedicineId: string;
+  type: string;
+  quantity: number;
+  previousStock: number;
+  newStock: number;
+  reason?: string;
+  performedBy?: string;
+  createdAt: string;
 }

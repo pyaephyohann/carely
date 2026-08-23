@@ -16,6 +16,7 @@ datasource db {
 enum UserRole {
   PATIENT
   DOCTOR
+  PHARMACY
   ADMIN
 }
 
@@ -73,6 +74,24 @@ enum NotificationType {
   SYSTEM
 }
 
+enum FulfillmentStatus {
+  PENDING
+  ACCEPTED
+  PREPARING
+  READY
+  COMPLETED
+  REJECTED
+  CANCELLED
+}
+
+enum InventoryTransactionType {
+  PURCHASE
+  SALE
+  ADJUSTMENT
+  RETURN
+  FULFILLMENT
+}
+
 enum AuditAction {
   CREATE
   UPDATE
@@ -105,9 +124,10 @@ model User {
   deletedAt     DateTime?
 
   // Profile relations (exactly one will be non-null based on role)
-  patient Patient?
-  doctor  Doctor?
-  admin   Admin?
+  patient         Patient?
+  doctor          Doctor?
+  admin           Admin?
+  pharmacyStaff   PharmacyStaff?
 
   // Related entities
   notifications Notification[]
@@ -140,6 +160,7 @@ model Patient {
   prescriptions  Prescription[]
   medicalRecords MedicalRecord[]
   reviews        Review[]
+  fulfillments   PrescriptionFulfillment[]
 
   @@index([userId])
   @@map("patients")
@@ -205,6 +226,28 @@ model Admin {
 
   @@index([userId])
   @@map("admins")
+}
+
+/// Pharmacy staff profile. Extends User with pharmacy-specific information.
+model PharmacyStaff {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  pharmacyId  String
+  firstName   String
+  lastName    String
+  phone       String?
+  avatar      String?
+  role        String   @default("STAFF") // STAFF, MANAGER, ADMIN
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pharmacy Pharmacy @relation(fields: [pharmacyId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([pharmacyId])
+  @@map("pharmacy_staff")
 }
 
 // =============================================================================
@@ -344,10 +387,11 @@ model Prescription {
   updatedAt      DateTime           @updatedAt
 
   // Relations
-  consultation Consultation       @relation(fields: [consultationId], references: [id], onDelete: Restrict)
-  doctor       Doctor             @relation(fields: [doctorId], references: [id], onDelete: Restrict)
-  patient      Patient            @relation(fields: [patientId], references: [id], onDelete: Restrict)
+  consultation Consultation              @relation(fields: [consultationId], references: [id], onDelete: Restrict)
+  doctor       Doctor                    @relation(fields: [doctorId], references: [id], onDelete: Restrict)
+  patient      Patient                   @relation(fields: [patientId], references: [id], onDelete: Restrict)
   items        PrescriptionItem[]
+  fulfillment  PrescriptionFulfillment?
 
   @@index([doctorId])
   @@index([patientId])
@@ -408,44 +452,115 @@ model Medicine {
 model Pharmacy {
   id            String    @id @default(cuid())
   name          String
+  description   String?
   address       String
   phone         String?
   email         String?
+  logo          String?
   licenseNumber String    @unique
   latitude      Float?
   longitude     Float?
+  openingHours  Json? // { monday: { open: "09:00", close: "17:00" }, ... }
+  verified      Boolean   @default(false)
+  verifiedAt    DateTime?
   active        Boolean   @default(true)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   deletedAt     DateTime?
 
   // Relations
-  inventories PharmacyMedicine[]
+  inventories   PharmacyMedicine[]
+  staff         PharmacyStaff[]
+  fulfillments  PrescriptionFulfillment[]
 
   @@index([active])
   @@index([licenseNumber])
+  @@index([verified])
   @@map("pharmacies")
 }
 
 /// Pharmacy-specific medicine inventory.
 /// Links a Pharmacy to a Medicine with stock and pricing.
 model PharmacyMedicine {
-  id         String   @id @default(cuid())
-  pharmacyId String
-  medicineId String
-  stock      Int      @default(0)
-  price      Decimal  @db.Decimal(10, 2)
-  inStock    Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id          String   @id @default(cuid())
+  pharmacyId  String
+  medicineId  String
+  stock       Int      @default(0)
+  price       Decimal  @db.Decimal(10, 2)
+  minimumStock Int     @default(0)
+  inStock     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  pharmacy Pharmacy @relation(fields: [pharmacyId], references: [id], onDelete: Cascade)
-  medicine Medicine @relation(fields: [medicineId], references: [id], onDelete: Restrict)
+  pharmacy       Pharmacy              @relation(fields: [pharmacyId], references: [id], onDelete: Cascade)
+  medicine       Medicine              @relation(fields: [medicineId], references: [id], onDelete: Restrict)
+  transactions   InventoryTransaction[]
+  fulfillments   PrescriptionFulfillmentItem[]
 
   @@unique([pharmacyId, medicineId])
   @@index([pharmacyId])
   @@index([medicineId])
   @@map("pharmacy_medicines")
+}
+
+/// Tracks individual stock movements for auditability.
+model InventoryTransaction {
+  id              String                  @id @default(cuid())
+  pharmacyMedicineId String               @map("pharmacy_medicine_id")
+  type            InventoryTransactionType
+  quantity        Int
+  previousStock   Int
+  newStock        Int
+  reason          String?
+  performedBy     String?                 // userId of staff who made the change
+  createdAt       DateTime                @default(now())
+
+  pharmacyMedicine PharmacyMedicine @relation(fields: [pharmacyMedicineId], references: [id], onDelete: Cascade)
+
+  @@index([pharmacyMedicineId])
+  @@index([type])
+  @@index([createdAt])
+  @@map("inventory_transactions")
+}
+
+/// Links a Prescription to a Pharmacy for fulfillment.
+model PrescriptionFulfillment {
+  id              String             @id @default(cuid())
+  prescriptionId  String
+  patientId       String
+  pharmacyId      String
+  status          FulfillmentStatus  @default(PENDING)
+  rejectReason    String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  prescription Prescription              @relation(fields: [prescriptionId], references: [id], onDelete: Restrict)
+  patient      Patient                   @relation(fields: [patientId], references: [id], onDelete: Restrict)
+  pharmacy     Pharmacy                  @relation(fields: [pharmacyId], references: [id], onDelete: Restrict)
+  items        PrescriptionFulfillmentItem[]
+
+  @@unique([prescriptionId]) // one fulfillment per prescription
+  @@index([pharmacyId])
+  @@index([patientId])
+  @@index([status])
+  @@map("prescription_fulfillments")
+}
+
+/// Individual medicine fulfillment tracking within a prescription fulfillment.
+model PrescriptionFulfillmentItem {
+  id                  String  @id @default(cuid())
+  fulfillmentId       String
+  pharmacyMedicineId  String?
+  medicineName        String  // preserved from prescription for historical accuracy
+  dosage              String
+  quantity            Int     @default(1)
+  fulfilled           Boolean @default(false)
+
+  fulfillment      PrescriptionFulfillment @relation(fields: [fulfillmentId], references: [id], onDelete: Cascade)
+  pharmacyMedicine PharmacyMedicine?       @relation(fields: [pharmacyMedicineId], references: [id], onDelete: SetNull)
+
+  @@index([fulfillmentId])
+  @@map("prescription_fulfillment_items")
 }
 
 // =============================================================================
