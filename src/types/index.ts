@@ -121,6 +121,8 @@ export interface Consultation {
 }
 
 // Prescription Types
+export type PrescriptionStatus = "DRAFT" | "ACTIVE" | "FINALIZED" | "COMPLETED" | "CANCELLED";
+
 export interface Prescription {
   id: string;
   consultationId: string;
@@ -128,6 +130,7 @@ export interface Prescription {
   patientId: string;
   diagnosis: string;
   notes?: string;
+  status: PrescriptionStatus;
   validUntil?: string;
   items: PrescriptionItem[];
   doctor?: Doctor;

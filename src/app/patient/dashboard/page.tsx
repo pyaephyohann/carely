@@ -40,7 +40,6 @@ const quickActions = [
     description: "Check your prescriptions and medication details",
     href: "/patient/prescriptions",
     color: "bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400",
-    disabled: true,
   },
   {
     icon: ClipboardList,
@@ -48,7 +47,6 @@ const quickActions = [
     description: "Access your medical history and records",
     href: "/patient/records",
     color: "bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400",
-    disabled: true,
   },
 ];
 
@@ -80,20 +78,15 @@ export default function PatientDashboard() {
           {quickActions.map((action) => {
             const Icon = action.icon;
             return (
-              <Link key={action.href} href={action.disabled ? "#" : action.href}>
-                <Card className={`group transition-all duration-200 h-full ${action.disabled ? "opacity-60 cursor-not-allowed" : "hover:shadow-md hover:border-violet-200 dark:hover:border-violet-800 cursor-pointer"}`}>
+              <Link key={action.href} href={action.href}>
+                <Card className="group transition-all duration-200 h-full hover:shadow-md hover:border-violet-200 dark:hover:border-violet-800 cursor-pointer">
                   <CardContent className="p-5">
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${action.color}`}>
                       <Icon className="h-5 w-5" />
                     </div>
                     <h3 className="font-medium text-foreground mb-1">{action.title}</h3>
                     <p className="text-sm text-muted-foreground">{action.description}</p>
-                    {action.disabled && (
-                      <span className="inline-block mt-2 text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">Coming Soon</span>
-                    )}
-                    {!action.disabled && (
-                      <ArrowRight className="h-4 w-4 text-muted-foreground mt-2 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    )}
+                    <ArrowRight className="h-4 w-4 text-muted-foreground mt-2 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </CardContent>
                 </Card>
               </Link>

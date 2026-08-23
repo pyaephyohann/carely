@@ -48,7 +48,9 @@ enum AppointmentType {
 }
 
 enum PrescriptionStatus {
+  DRAFT
   ACTIVE
+  FINALIZED
   COMPLETED
   CANCELLED
 }
@@ -459,6 +461,7 @@ model MedicalRecord {
   type           RecordType
   title          String
   description    String?
+  treatmentPlan  String?
   attachments    String[] // File URLs
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt

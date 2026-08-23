@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -12,6 +13,7 @@ import {
   Phone,
   Mail,
   User,
+  Stethoscope,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -20,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/features/patient/empty-state";
+import { ConsultationForm } from "@/components/features/doctor/consultation-form";
 import {
   useGetDoctorAppointmentDetailQuery,
   useUpdateAppointmentStatusMutation,
@@ -30,6 +33,7 @@ export default function DoctorAppointmentDetailPage() {
   const params = useParams();
   const router = useRouter();
   const appointmentId = params.appointmentId as string;
+  const [showConsultation, setShowConsultation] = useState(false);
 
   const { data, isLoading, error } = useGetDoctorAppointmentDetailQuery(appointmentId);
   const [updateStatus, { isLoading: isUpdating }] = useUpdateAppointmentStatusMutation();
@@ -160,8 +164,12 @@ export default function DoctorAppointmentDetailPage() {
               <div className="border-t border-border pt-4">
                 <div className="flex flex-wrap gap-2">
                   {validTransitions.includes("COMPLETED" as never) && (
-                    <Button onClick={() => handleStatusUpdate("COMPLETED")} isLoading={isUpdating}>
-                      Mark Completed
+                    <Button
+                      onClick={() => setShowConsultation(!showConsultation)}
+                      isLoading={isUpdating}
+                    >
+                      <Stethoscope className="h-4 w-4" />
+                      {showConsultation ? "Hide Consultation" : "Start Consultation"}
                     </Button>
                   )}
                   {validTransitions.includes("NO_SHOW" as never) && (
@@ -194,6 +202,21 @@ export default function DoctorAppointmentDetailPage() {
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Consultation Form */}
+      {showConsultation && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <ConsultationForm
+            appointmentId={appointment.id}
+            patientName={`${appointment.patient.firstName} ${appointment.patient.lastName}`}
+            onSuccess={() => setShowConsultation(false)}
+          />
+        </motion.div>
+      )}
     </div>
   );
 }

@@ -56,22 +56,44 @@ export const appointmentSchema = z.object({
   reason: z.string().max(500, "Reason must be 500 characters or less").optional(),
 });
 
+// Consultation Schemas
+export const consultationSchema = z.object({
+  appointmentId: z.string().min(1, "Appointment ID is required"),
+  diagnosis: z.string().min(1, "Diagnosis is required").max(2000, "Diagnosis must be 2000 characters or less"),
+  symptoms: z.string().max(2000, "Symptoms must be 2000 characters or less").optional(),
+  notes: z.string().max(5000, "Notes must be 5000 characters or less").optional(),
+  followUpDate: z.string().optional(),
+});
+
+export const consultationUpdateSchema = z.object({
+  diagnosis: z.string().min(1, "Diagnosis is required").max(2000).optional(),
+  symptoms: z.string().max(2000).optional(),
+  notes: z.string().max(5000).optional(),
+  followUpDate: z.string().optional(),
+});
+
 // Prescription Schemas
 export const prescriptionItemSchema = z.object({
   medicineId: z.string().min(1, "Medicine is required"),
-  dosage: z.string().min(1, "Dosage is required"),
-  frequency: z.string().min(1, "Frequency is required"),
-  duration: z.string().min(1, "Duration is required"),
-  instructions: z.string().optional(),
+  dosage: z.string().min(1, "Dosage is required").max(200),
+  frequency: z.string().min(1, "Frequency is required").max(200),
+  duration: z.string().min(1, "Duration is required").max(200),
+  instructions: z.string().max(1000).optional(),
 });
 
 export const prescriptionSchema = z.object({
-  patientId: z.string().min(1, "Patient is required"),
   consultationId: z.string().min(1, "Consultation is required"),
-  diagnosis: z.string().min(1, "Diagnosis is required"),
-  notes: z.string().optional(),
+  diagnosis: z.string().min(1, "Diagnosis is required").max(2000),
+  notes: z.string().max(2000).optional(),
   validUntil: z.string().optional(),
-  items: z.array(prescriptionItemSchema).min(1, "At least one item is required"),
+  items: z.array(prescriptionItemSchema).min(1, "At least one medicine is required").max(20, "Maximum 20 items per prescription"),
+});
+
+export const prescriptionUpdateSchema = z.object({
+  diagnosis: z.string().min(1).max(2000).optional(),
+  notes: z.string().max(2000).optional(),
+  validUntil: z.string().optional(),
+  items: z.array(prescriptionItemSchema).min(1).max(20).optional(),
 });
 
 // Search Schemas
@@ -93,5 +115,7 @@ export type RegisterInput = z.infer<typeof registerSchema>;
 export type PatientProfileInput = z.infer<typeof patientProfileSchema>;
 export type DoctorProfileInput = z.infer<typeof doctorProfileSchema>;
 export type AppointmentInput = z.infer<typeof appointmentSchema>;
+export type ConsultationInput = z.infer<typeof consultationSchema>;
 export type PrescriptionInput = z.infer<typeof prescriptionSchema>;
+export type PrescriptionItemInput = z.infer<typeof prescriptionItemSchema>;
 export type DoctorSearchInput = z.infer<typeof doctorSearchSchema>;
