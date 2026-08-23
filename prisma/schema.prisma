@@ -66,10 +66,17 @@ enum RecordType {
 }
 
 enum NotificationType {
+  APPOINTMENT_BOOKED
   APPOINTMENT_CONFIRMED
   APPOINTMENT_CANCELLED
   APPOINTMENT_REMINDER
   PRESCRIPTION_CREATED
+  PRESCRIPTION_FINALIZED
+  PHARMACY_FULFILLMENT_RECEIVED
+  PHARMACY_FULFILLMENT_ACCEPTED
+  PHARMACY_FULFILLMENT_REJECTED
+  PHARMACY_FULFILLMENT_READY
+  PHARMACY_FULFILLMENT_COMPLETED
   DOCTOR_VERIFIED
   SYSTEM
 }
@@ -130,8 +137,9 @@ model User {
   pharmacyStaff   PharmacyStaff?
 
   // Related entities
-  notifications Notification[]
-  auditLogs     AuditLog[]
+  notifications            Notification[]
+  notificationPreference   NotificationPreference?
+  auditLogs                AuditLog[]
 
   @@index([email])
   @@index([role])
@@ -625,16 +633,76 @@ model Notification {
   title     String
   message   String
   type      NotificationType
+  link      String? // Client-side navigation target (e.g., "/patient/appointments/abc")
   read      Boolean          @default(false)
-  metadata  Json? // Flexible data (appointment ID, etc.)
+  readAt    DateTime?
+  metadata  Json? // Flexible data (appointment ID, prescription ID, etc.)
   createdAt DateTime         @default(now())
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, read])
+  @@index([userId, readAt])
   @@index([userId, createdAt])
+  @@index([type])
   @@map("notifications")
+}
+
+/// Notification and email preferences per user.
+model NotificationPreference {
+  id                     String   @id @default(cuid())
+  userId                 String   @unique
+  appointmentUpdates     Boolean  @default(true)
+  appointmentReminders   Boolean  @default(true)
+  prescriptionUpdates    Boolean  @default(true)
+  pharmacyUpdates        Boolean  @default(true)
+  emailEnabled           Boolean  @default(true)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("notification_preferences")
+}
+
+/// Email delivery log for tracking and debugging.
+model EmailDeliveryLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  to        String   // recipient email
+  subject   String
+  type      String   // maps to NotificationType or "WELCOME"
+  status    String   @default("PENDING") // PENDING, SENT, FAILED
+  providerId String? // email provider message ID
+  error     String? // failure reason
+  metadata  Json?
+  sentAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("email_delivery_logs")
+}
+
+/// Durable scheduled reminders (not in-memory setTimeout).
+model ScheduledReminder {
+  id             String    @id @default(cuid())
+  userId         String
+  entityType     String    // "APPOINTMENT"
+  entityId       String    // appointment ID
+  type           String    // "APPOINTMENT_REMINDER"
+  scheduledFor   DateTime  // when to fire
+  sent           Boolean   @default(false)
+  sentAt         DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@unique([entityType, entityId, type]) // prevent duplicate reminders
+  @@index([scheduledFor, sent])
+  @@index([userId])
+  @@map("scheduled_reminders")
 }
 
 // =============================================================================

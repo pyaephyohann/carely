@@ -16,8 +16,8 @@ import {
   Menu,
   X,
   LogOut,
-  Bell,
 } from "lucide-react";
+import { NotificationCenter } from "@/components/features/notifications";
 import { useAppSelector } from "@/hooks/useRedux";
 import { selectCurrentUser, selectIsLoading } from "@/store/slices/authSlice";
 import { Avatar } from "@/components/ui/avatar";
@@ -278,12 +278,7 @@ export default function PatientLayout({
               <span className="font-bold text-foreground text-sm">Carely</span>
             </Link>
           </div>
-          <button
-            className="p-2 -mr-2 rounded-lg text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
-            aria-label="Notifications"
-          >
-            <Bell className="h-5 w-5" />
-          </button>
+          <NotificationCenter />
         </div>
 
         {/* Page Content */}

@@ -18,6 +18,7 @@ import {
   LogOut,
   Settings,
 } from "lucide-react";
+import { NotificationCenter } from "@/components/features/notifications";
 import { useAppSelector } from "@/hooks/useRedux";
 import { selectCurrentUser, selectIsLoading } from "@/store/slices/authSlice";
 import { Avatar } from "@/components/ui/avatar";
@@ -211,7 +212,7 @@ export default function DoctorLayout({
             <div className="w-6 h-6 bg-violet-600 rounded-md flex items-center justify-center"><Heart className="h-3.5 w-3.5 text-white" fill="currentColor" /></div>
             <span className="font-bold text-foreground text-sm">Carely</span>
           </Link>
-          <div className="w-9" />
+          <NotificationCenter />
         </div>
         <main className="flex-1 p-4 md:p-8">{children}</main>
       </div>

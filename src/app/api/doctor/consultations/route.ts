@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireDoctor } from "@/lib/auth-helpers";
 import { requireDatabase, apiError, apiSuccess } from "@/lib/api";
 import { consultationSchema, prescriptionSchema } from "@/lib/validation";
+import { onPrescriptionFinalized } from "@/lib/notifications/events";
 
 // =============================================================================
 // POST /api/doctor/consultations
@@ -182,6 +183,18 @@ export async function POST(request: NextRequest) {
 
       return { consultation, prescription };
     });
+
+    // Dispatch prescription notification (fire-and-forget)
+    if (result.prescription) {
+      const doctorData = await prisma!.doctor.findUnique({ where: { id: doctor.id }, select: { firstName: true, lastName: true } });
+      onPrescriptionFinalized({
+        prescriptionId: result.prescription.id,
+        patientUserId: (await prisma!.patient.findUnique({ where: { id: appointment.patientId }, select: { userId: true } }))?.userId || "",
+        doctorName: doctorData ? `${doctorData.firstName} ${doctorData.lastName}` : "",
+        diagnosis: result.prescription.diagnosis,
+        itemCount: result.prescription.items.length,
+      }).catch(() => {});
+    }
 
     return apiSuccess(
       {

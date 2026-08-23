@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePharmacy } from "@/lib/auth-helpers";
 import { requireDatabase, apiError, apiSuccess } from "@/lib/api";
 import { updateFulfillmentStatusSchema } from "@/lib/validation";
+import { onPharmacyFulfillmentStatusChanged } from "@/lib/notifications/events";
 
 // =============================================================================
 // Helper
@@ -183,6 +184,18 @@ export async function PATCH(
       where: { id: fulfillmentId },
       data: { status: newStatus },
     });
+
+    // Dispatch notification for all status changes (fire-and-forget)
+    const pharmacy = await prisma!.pharmacy.findUnique({ where: { id: pharmacyId }, select: { name: true } });
+    const prescription = await prisma!.prescription.findUnique({ where: { id: fulfillment.prescriptionId }, select: { diagnosis: true } });
+    onPharmacyFulfillmentStatusChanged({
+      fulfillmentId,
+      patientUserId: (await prisma!.patient.findUnique({ where: { id: fulfillment.patientId }, select: { userId: true } }))?.userId || "",
+      pharmacyName: pharmacy?.name || "Pharmacy",
+      status: newStatus,
+      prescriptionDiagnosis: prescription?.diagnosis || "",
+      rejectReason: rejectReason || undefined,
+    }).catch(() => {});
 
     return apiSuccess({
       id: updated.id,

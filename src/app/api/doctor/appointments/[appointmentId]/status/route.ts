@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { requireDatabase, apiSuccess, apiError } from "@/lib/api";
 import { requireDoctor } from "@/lib/auth-helpers";
 import { isValidTransition } from "@/lib/appointment-utils";
+import { onAppointmentConfirmed, onAppointmentCancelled } from "@/lib/notifications/events";
+import { cancelAppointmentReminders } from "@/lib/notifications/reminder-service";
 
 // =============================================================================
 // PATCH /api/doctor/appointments/[appointmentId]/status — Update appointment status
@@ -109,6 +111,46 @@ export async function PATCH(
       updatedAt: true,
     },
   });
+
+  // Dispatch notifications (fire-and-forget)
+  if (status === "CONFIRMED" || status === "CANCELLED") {
+    const fullAppt = await prisma!.appointment.findUnique({
+      where: { id: appointment.id },
+      include: {
+        patient: { select: { userId: true, firstName: true, lastName: true } },
+        doctor: { select: { firstName: true, lastName: true } },
+      },
+    });
+
+    if (fullAppt) {
+      const dateStr = fullAppt.startTime.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+      const timeStr = fullAppt.startTime.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+
+      // Cancel any pending reminders for cancelled appointments
+      if (status === "CANCELLED") {
+        cancelAppointmentReminders(fullAppt.id).catch(() => {});
+      }
+
+      if (status === "CONFIRMED") {
+        onAppointmentConfirmed({
+          appointmentId: fullAppt.id,
+          patientUserId: fullAppt.patient.userId,
+          doctorName: `${fullAppt.doctor.firstName} ${fullAppt.doctor.lastName}`,
+          date: dateStr,
+          time: timeStr,
+        }).catch(() => {});
+      } else if (status === "CANCELLED") {
+        onAppointmentCancelled({
+          appointmentId: fullAppt.id,
+          recipientUserId: fullAppt.patient.userId,
+          cancelledByName: `Dr. ${fullAppt.doctor.firstName} ${fullAppt.doctor.lastName}`,
+          date: dateStr,
+          time: timeStr,
+          reason: cancelReason || undefined,
+        }).catch(() => {});
+      }
+    }
+  }
 
   return apiSuccess({
     id: updated.id,

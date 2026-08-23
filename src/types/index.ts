@@ -190,10 +190,18 @@ export interface Review {
 
 // Notification Types
 export type NotificationType =
-  | "APPOINTMENT_REMINDER"
-  | "APPOINTMENT_CANCELLED"
+  | "APPOINTMENT_BOOKED"
   | "APPOINTMENT_CONFIRMED"
-  | "PRESCRIPTION_READY"
+  | "APPOINTMENT_CANCELLED"
+  | "APPOINTMENT_REMINDER"
+  | "PRESCRIPTION_CREATED"
+  | "PRESCRIPTION_FINALIZED"
+  | "PHARMACY_FULFILLMENT_RECEIVED"
+  | "PHARMACY_FULFILLMENT_ACCEPTED"
+  | "PHARMACY_FULFILLMENT_REJECTED"
+  | "PHARMACY_FULFILLMENT_READY"
+  | "PHARMACY_FULFILLMENT_COMPLETED"
+  | "DOCTOR_VERIFIED"
   | "SYSTEM";
 
 export interface Notification {
@@ -202,9 +210,19 @@ export interface Notification {
   title: string;
   message: string;
   type: NotificationType;
+  link?: string;
   read: boolean;
+  readAt?: string;
   metadata?: Record<string, unknown>;
   createdAt: string;
+}
+
+export interface NotificationPreference {
+  appointmentUpdates: boolean;
+  appointmentReminders: boolean;
+  prescriptionUpdates: boolean;
+  pharmacyUpdates: boolean;
+  emailEnabled: boolean;
 }
 
 // API Response Types

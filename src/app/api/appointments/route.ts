@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { requireDatabase, apiSuccess, apiError } from "@/lib/api";
 import { requirePatient } from "@/lib/auth-helpers";
 import { generateAvailableSlots } from "@/lib/scheduling";
+import { onAppointmentBooked } from "@/lib/notifications/events";
+import { scheduleAppointmentReminders } from "@/lib/notifications/reminder-service";
 import { Prisma } from "@prisma/client";
 
 // =============================================================================
@@ -167,6 +169,39 @@ export async function POST(request: NextRequest) {
 
       return appointment;
     });
+
+    // Fetch doctor and patient names for notification
+    const [doctorData, patientData] = await Promise.all([
+      prisma!.doctor.findUnique({ where: { id: doctorId }, select: { firstName: true, lastName: true, userId: true } }),
+      prisma!.patient.findUnique({ where: { id: patient.id }, select: { firstName: true, lastName: true } }),
+    ]);
+
+    // Dispatch notifications (fire-and-forget, must not block response)
+    if (doctorData && patientData) {
+      const dateStr = new Date(result.startTime).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+      const timeStr = new Date(result.startTime).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+      onAppointmentBooked({
+        appointmentId: result.id,
+        patientId: patient.id,
+        doctorId: doctorId!,
+        patientUserId: auth.user.userId,
+        doctorUserId: doctorData.userId,
+        doctorName: `${doctorData.firstName} ${doctorData.lastName}`,
+        patientName: `${patientData.firstName} ${patientData.lastName}`,
+        date: dateStr,
+        time: timeStr,
+        type: result.type || "IN_PERSON",
+      }).catch(() => {});
+
+      // Schedule reminders (fire-and-forget)
+      scheduleAppointmentReminders({
+        appointmentId: result.id,
+        patientUserId: auth.user.userId,
+        doctorName: `${doctorData.firstName} ${doctorData.lastName}`,
+        patientName: `${patientData.firstName} ${patientData.lastName}`,
+        appointmentTime: result.startTime,
+      }).catch(() => {});
+    }
 
     return apiSuccess({
       id: result.id,

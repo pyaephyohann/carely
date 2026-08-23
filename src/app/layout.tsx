@@ -23,6 +23,10 @@ export const metadata: Metadata = {
     "Connect with doctors, book appointments, manage prescriptions, and access quality healthcare. Carely makes healthcare simple and accessible.",
   keywords: ["healthcare", "doctor", "appointment", "medical", "prescription", "pharmacy"],
   authors: [{ name: "Carely" }],
+  icons: {
+    icon: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
   openGraph: {
     type: "website",
     locale: "en_US",

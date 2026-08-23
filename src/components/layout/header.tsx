@@ -8,6 +8,7 @@ import { Menu, X, Heart, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
 import { ThemeSwitcher } from "@/components/theme";
+import { NotificationCenter } from "@/components/features/notifications";
 import { cn } from "@/utils/cn";
 import { useAppSelector, useAppDispatch } from "@/hooks/useRedux";
 import { selectCurrentUser, selectIsAuthenticated, logout } from "@/store/slices/authSlice";
@@ -98,6 +99,7 @@ export function Header() {
 
           {/* Desktop CTA */}
           <div className="hidden lg:flex items-center gap-2">
+            {isAuthenticated && user && <NotificationCenter />}
             <ThemeSwitcher />
             {isAuthenticated && user ? (
               <div className="flex items-center gap-2 ml-1">
