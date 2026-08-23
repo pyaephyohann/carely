@@ -49,7 +49,7 @@ export function ThemeSwitcher({ className }: { className?: string }) {
           "flex items-center justify-center w-9 h-9 rounded-lg transition-colors",
           "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900",
           "dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100",
-          "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+          "cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
           "focus:ring-offset-background"
         )}
         aria-label={`Theme: ${theme}. Click to change.`}
@@ -87,7 +87,7 @@ export function ThemeSwitcher({ className }: { className?: string }) {
                     setIsOpen(false);
                   }}
                   className={cn(
-                    "w-full flex items-center gap-3 px-3 py-2.5 text-sm transition-colors text-left",
+                    "w-full flex items-center gap-3 px-3 py-2.5 text-sm transition-colors text-left cursor-pointer",
                     isActive
                       ? "bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-300"
                       : "text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800"

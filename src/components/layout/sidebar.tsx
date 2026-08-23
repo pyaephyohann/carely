@@ -162,7 +162,7 @@ export function Sidebar({ role, firstName = "User", lastName = "" }: SidebarProp
           </AnimatePresence>
           <button
             onClick={() => dispatch(toggleSidebarCollapsed())}
-            className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors flex-shrink-0"
+            className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors flex-shrink-0 cursor-pointer"
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             <ChevronLeft

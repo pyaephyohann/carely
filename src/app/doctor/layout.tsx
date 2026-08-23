@@ -159,7 +159,7 @@ export default function DoctorLayout({
                   <div className="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center"><Heart className="h-5 w-5 text-white" fill="currentColor" /></div>
                   <span className="text-lg font-bold text-foreground">Carely</span>
                 </Link>
-                <button onClick={() => setMobileOpen(false)} className="p-2 rounded-lg text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800" aria-label="Close menu">
+                <button onClick={() => setMobileOpen(false)} className="p-2 rounded-lg text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer" aria-label="Close menu">
                   <X className="h-5 w-5" />
                 </button>
               </div>
@@ -205,7 +205,7 @@ export default function DoctorLayout({
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         <div className="sticky top-0 z-30 h-14 flex items-center justify-between px-4 border-b border-border bg-card/80 backdrop-blur-md md:hidden">
-          <button onClick={() => setMobileOpen(true)} className="p-2 -ml-2 rounded-lg text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800" aria-label="Open menu">
+          <button onClick={() => setMobileOpen(true)} className="p-2 -ml-2 rounded-lg text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800 cursor-pointer" aria-label="Open menu">
             <Menu className="h-5 w-5" />
           </button>
           <Link href="/" className="flex items-center gap-1.5">
