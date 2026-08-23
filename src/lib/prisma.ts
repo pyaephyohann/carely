@@ -7,7 +7,11 @@ const globalForPrisma = globalThis as unknown as {
 
 function createPrismaClient(): PrismaClient | null {
   const databaseUrl = process.env.DATABASE_URL;
-  if (!databaseUrl || databaseUrl.includes("user:password")) {
+  if (
+    !databaseUrl ||
+    databaseUrl.includes("YOUR_DB_USER") ||
+    databaseUrl.includes("YOUR_DB_PASSWORD")
+  ) {
     // No valid database URL — return null so API routes can handle gracefully
     return null;
   }

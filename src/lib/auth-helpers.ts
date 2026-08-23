@@ -5,6 +5,7 @@ import {
   getAccessTokenFromCookies,
   type AccessTokenPayload,
 } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import type { UserRole } from "@/types";
 
 // =============================================================================
@@ -49,6 +50,45 @@ export async function requireAuth(request: NextRequest): Promise<AuthResult> {
       ),
     };
   }
+
+  // Centralized user status enforcement.
+  // A valid JWT does NOT mean the account is still active.
+  // We verify against the database on every authenticated request.
+  // This ensures suspended/deactivated users are blocked within seconds
+  // of the status change, even if their JWT hasn't expired yet.
+  if (prisma) {
+    try {
+      const dbUser = await prisma.user.findUnique({
+        where: { id: user.userId },
+        select: { status: true, deletedAt: true },
+      });
+
+      if (!dbUser || dbUser.deletedAt) {
+        return {
+          authenticated: false,
+          response: NextResponse.json(
+            { success: false, error: { code: "UNAUTHORIZED", message: "Authentication required" } },
+            { status: 401 }
+          ),
+        };
+      }
+
+      if (dbUser.status !== "ACTIVE") {
+        return {
+          authenticated: false,
+          response: NextResponse.json(
+            { success: false, error: { code: "FORBIDDEN", message: "Account is not active" } },
+            { status: 403 }
+          ),
+        };
+      }
+    } catch {
+      // If the database is unavailable, allow the request through
+      // rather than locking out all authenticated users.
+      // The database check in individual routes will handle this case.
+    }
+  }
+
   return { authenticated: true, user };
 }
 
