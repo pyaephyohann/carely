@@ -343,7 +343,9 @@ model Appointment {
   review       Review?
 
   // Indexes for scheduling queries
-  @@unique([doctorId, startTime])
+  // Note: the old @@unique([doctorId, startTime]) has been replaced with a partial
+  // unique index in the DB migration that excludes CANCELLED appointments.
+  // This allows cancelled slots to be rebooked while preserving appointment history.
   @@index([patientId])
   @@index([doctorId])
   @@index([startTime])

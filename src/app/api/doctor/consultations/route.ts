@@ -55,21 +55,23 @@ export async function POST(request: NextRequest) {
       return apiError("You can only create consultations for your own appointments", "FORBIDDEN", 403);
     }
 
+    // Check if consultation already exists — this MUST happen before status check
+    // because the first consultation marks the appointment as COMPLETED.
+    // Checking status first would return 422 INVALID_STATUS instead of 409 ALREADY_EXISTS.
+    if (appointment.consultation) {
+      return apiError(
+        "A consultation already exists for this appointment",
+        "ALREADY_EXISTS",
+        409,
+      );
+    }
+
     // Appointment must be CONFIRMED to create a consultation
     if (appointment.status !== "CONFIRMED") {
       return apiError(
         "Consultations can only be created for confirmed appointments",
         "INVALID_STATUS",
         422,
-      );
-    }
-
-    // Check if consultation already exists
-    if (appointment.consultation) {
-      return apiError(
-        "A consultation already exists for this appointment",
-        "ALREADY_EXISTS",
-        409,
       );
     }
 
