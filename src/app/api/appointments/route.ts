@@ -45,8 +45,17 @@ export async function POST(request: NextRequest) {
   if (!startTime || !/^\d{2}:\d{2}$/.test(startTime)) {
     return apiError("Valid start time is required (HH:mm)", "VALIDATION_ERROR", 422);
   }
+  // BUG-01: Validate hour (00-23) and minute (00-59)
+  const [hours, minutes] = startTime.split(":").map(Number);
+  if (hours > 23 || minutes > 59) {
+    return apiError("Invalid time: hour must be 00-23 and minute must be 00-59", "VALIDATION_ERROR", 422);
+  }
   if (type && !["IN_PERSON", "VIRTUAL"].includes(type)) {
     return apiError("Invalid appointment type", "VALIDATION_ERROR", 422);
+  }
+  // BUG-02: Validate reason max length
+  if (reason && typeof reason === "string" && reason.length > 500) {
+    return apiError("Reason must be 500 characters or less", "VALIDATION_ERROR", 422);
   }
 
   // Find patient profile
@@ -125,23 +134,19 @@ export async function POST(request: NextRequest) {
       }
 
       // 4. Check for conflicts with existing bookings (within transaction)
+      // BUG-03 FIX: Check ALL appointments at this startTime, not just PENDING/CONFIRMED.
+      // The (doctorId, startTime) unique constraint blocks ALL statuses including CANCELLED.
       const conflictCount = await tx.appointment.count({
         where: {
           doctorId: doctor.id,
-          status: { in: ["PENDING", "CONFIRMED"] },
-          OR: [
-            {
-              startTime: { lt: new Date(matchingSlot.endTime) },
-              endTime: { gt: new Date(matchingSlot.startTime) },
-            },
-          ],
+          startTime: new Date(matchingSlot.startTime),
         },
       });
 
       if (conflictCount > 0) {
         throw new AppError(
-          "This time slot has just been booked. Please choose another time.",
-          "SLOT_CONFLICT",
+          "This time slot is not available. Please choose another time.",
+          "SLOT_UNAVAILABLE",
           409,
         );
       }
@@ -220,14 +225,17 @@ export async function POST(request: NextRequest) {
       return apiError(error.message, error.code, error.status);
     }
     // Handle Prisma unique constraint violation (race condition)
+    // Check both the error message and Prisma's error code property
+    const errMsg = error instanceof Error ? error.message : String(error);
+    const errCode = (error as { code?: string })?.code || "";
     if (
-      error instanceof Error &&
-      error.message.includes("Unique constraint") &&
-      error.message.includes("appointments")
+      errCode === "P2002" ||
+      errMsg.includes("Unique constraint") ||
+      errMsg.includes("unique constraint")
     ) {
       return apiError(
-        "This time slot has just been booked. Please choose another time.",
-        "SLOT_CONFLICT",
+        "This time slot is not available. Please choose another time.",
+        "SLOT_UNAVAILABLE",
         409,
       );
     }

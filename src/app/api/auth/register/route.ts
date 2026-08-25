@@ -45,7 +45,12 @@ export async function POST(request: Request) {
     const dbCheck = requireDatabase();
     if (dbCheck) return dbCheck;
 
-    const body = await request.json();
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return apiError("Invalid request body", "INVALID_BODY", 400);
+    }
     const parsed = registerSchema.safeParse(body);
 
     if (!parsed.success) {

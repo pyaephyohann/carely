@@ -98,37 +98,55 @@ export async function PATCH(
     // COMPLETED: deduct stock in a transaction
     if (newStatus === "COMPLETED") {
       const result = await prisma!.$transaction(async (tx) => {
-        // Deduct stock for fulfilled items
+        // BUG-05 FIX: Deduct stock for all items with a linked pharmacyMedicineId.
+        // Previously, the check `item.fulfilled` prevented deduction because items
+        // were created with `fulfilled: false` and never updated.
+        // Now we check `pharmacyMedicineId` (the item is linked to inventory)
+        // and set `fulfilled: true` as part of the completion.
         for (const item of fulfillment.items) {
-          if (item.pharmacyMedicineId && item.fulfilled) {
+          if (item.pharmacyMedicineId) {
             const inventoryItem = await tx.pharmacyMedicine.findUnique({
               where: { id: item.pharmacyMedicineId },
             });
 
-            if (inventoryItem && inventoryItem.stock >= item.quantity) {
-              const newStock = inventoryItem.stock - item.quantity;
-
-              await tx.pharmacyMedicine.update({
-                where: { id: item.pharmacyMedicineId },
-                data: {
-                  stock: newStock,
-                  inStock: newStock > 0,
-                },
-              });
-
-              await tx.inventoryTransaction.create({
-                data: {
-                  pharmacyMedicineId: item.pharmacyMedicineId,
-                  type: "FULFILLMENT",
-                  quantity: -item.quantity,
-                  previousStock: inventoryItem.stock,
-                  newStock,
-                  reason: `Fulfillment #${fulfillmentId}`,
-                  performedBy: auth.user.userId,
-                },
-              });
+            if (!inventoryItem) {
+              throw new Error(`Inventory item not found for fulfillment item ${item.id}`);
             }
+
+            if (inventoryItem.stock < item.quantity) {
+              throw new Error(
+                `Insufficient stock for ${item.medicineName}: available ${inventoryItem.stock}, required ${item.quantity}`,
+              );
+            }
+
+            const newStock = inventoryItem.stock - item.quantity;
+
+            await tx.pharmacyMedicine.update({
+              where: { id: item.pharmacyMedicineId },
+              data: {
+                stock: newStock,
+                inStock: newStock > 0,
+              },
+            });
+
+            await tx.inventoryTransaction.create({
+              data: {
+                pharmacyMedicineId: item.pharmacyMedicineId,
+                type: "FULFILLMENT",
+                quantity: -item.quantity,
+                previousStock: inventoryItem.stock,
+                newStock,
+                reason: `Fulfillment #${fulfillmentId}`,
+                performedBy: auth.user.userId,
+              },
+            });
           }
+
+          // Mark fulfillment item as fulfilled
+          await tx.prescriptionFulfillmentItem.update({
+            where: { id: item.id },
+            data: { fulfilled: true },
+          });
         }
 
         // Update fulfillment status
@@ -145,6 +163,18 @@ export async function PATCH(
 
         return updated;
       });
+
+      // BUG-08 FIX: Send notification for COMPLETED status
+      const pharmacyForNotif = await prisma!.pharmacy.findUnique({ where: { id: pharmacyId }, select: { name: true } });
+      const prescriptionForNotif = await prisma!.prescription.findUnique({ where: { id: fulfillment.prescriptionId }, select: { diagnosis: true } });
+      const patientUserIdForNotif = (await prisma!.patient.findUnique({ where: { id: fulfillment.patientId }, select: { userId: true } }))?.userId || "";
+      onPharmacyFulfillmentStatusChanged({
+        fulfillmentId,
+        patientUserId: patientUserIdForNotif,
+        pharmacyName: pharmacyForNotif?.name || "Pharmacy",
+        status: newStatus,
+        prescriptionDiagnosis: prescriptionForNotif?.diagnosis || "",
+      }).catch(() => {});
 
       return apiSuccess({
         id: result.id,
@@ -171,6 +201,19 @@ export async function PATCH(
       const updated = await prisma!.prescriptionFulfillment.findUnique({
         where: { id: fulfillmentId },
       });
+
+      // BUG-08 FIX: Send notification for REJECTED status
+      const pharmacyForReject = await prisma!.pharmacy.findUnique({ where: { id: pharmacyId }, select: { name: true } });
+      const prescriptionForReject = await prisma!.prescription.findUnique({ where: { id: fulfillment.prescriptionId }, select: { diagnosis: true } });
+      const patientUserIdForReject = (await prisma!.patient.findUnique({ where: { id: fulfillment.patientId }, select: { userId: true } }))?.userId || "";
+      onPharmacyFulfillmentStatusChanged({
+        fulfillmentId,
+        patientUserId: patientUserIdForReject,
+        pharmacyName: pharmacyForReject?.name || "Pharmacy",
+        status: newStatus,
+        prescriptionDiagnosis: prescriptionForReject?.diagnosis || "",
+        rejectReason: rejectReason || undefined,
+      }).catch(() => {});
 
       return apiSuccess({
         id: updated!.id,

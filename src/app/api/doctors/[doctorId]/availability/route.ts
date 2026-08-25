@@ -59,10 +59,13 @@ export async function GET(
   const dayStart = new Date(`${dateStr}T00:00:00.000Z`);
   const dayEnd = new Date(`${dateStr}T23:59:59.999Z`);
 
+  // BUG-03 FIX: Include ALL non-cancelled appointments when checking slot conflicts.
+  // Cancelled appointments still occupy the (doctorId, startTime) unique constraint,
+  // so their slots must NOT be reported as available.
   const existingAppointments = await prisma!.appointment.findMany({
     where: {
       doctorId: doctor.id,
-      status: { in: ["PENDING", "CONFIRMED"] },
+      status: { notIn: ["CANCELLED"] },
       startTime: { gte: dayStart, lte: dayEnd },
     },
     select: {

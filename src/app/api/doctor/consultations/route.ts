@@ -20,7 +20,12 @@ export async function POST(request: NextRequest) {
   if (!auth.authenticated) return auth.response;
 
   try {
-    const body = await request.json();
+    let body: Record<string, unknown>;
+    try {
+      body = (await request.json()) as Record<string, unknown>;
+    } catch {
+      return apiError("Invalid request body", "INVALID_BODY", 400);
+    }
     const validation = consultationSchema.safeParse(body);
 
     if (!validation.success) {
@@ -82,10 +87,10 @@ export async function POST(request: NextRequest) {
       }[];
     } | null = null;
 
-    if (body.prescription) {
+    if (body.prescription && typeof body.prescription === "object") {
       const rxValidation = prescriptionSchema.safeParse({
         consultationId: "placeholder", // Will be set after consultation creation
-        ...body.prescription,
+        ...(body.prescription as Record<string, unknown>),
       });
       if (!rxValidation.success) {
         return apiError("Prescription validation failed", "VALIDATION_ERROR", 400, {

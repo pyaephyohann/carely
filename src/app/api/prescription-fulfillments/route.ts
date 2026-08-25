@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-helpers";
 import { requireDatabase, apiError, apiSuccess } from "@/lib/api";
 import { createFulfillmentSchema } from "@/lib/validation";
+import { createNotification } from "@/lib/notifications/notification-service";
 
 // =============================================================================
 // POST /api/prescription-fulfillments
@@ -123,6 +124,37 @@ export async function POST(request: NextRequest) {
 
       return fulfillment;
     });
+
+    // BUG-06 FIX: Notify the pharmacy that a new fulfillment has been received.
+    // Find pharmacy staff users and notify them.
+    const pharmacyStaffUsers = await prisma!.pharmacyStaff.findMany({
+      where: { pharmacyId },
+      select: { userId: true },
+    });
+
+    const patientData = await prisma!.patient.findUnique({
+      where: { id: patient.id },
+      select: { firstName: true, lastName: true },
+    });
+
+    const prescriptionData = await prisma!.prescription.findUnique({
+      where: { id: prescriptionId },
+      select: { diagnosis: true },
+    });
+
+    if (pharmacyStaffUsers.length > 0 && patientData && pharmacy) {
+      const diagnosisText = prescriptionData?.diagnosis ? ` (${prescriptionData.diagnosis})` : "";
+      for (const staff of pharmacyStaffUsers) {
+        createNotification({
+          userId: staff.userId,
+          type: "PHARMACY_FULFILLMENT_RECEIVED",
+          title: "New Prescription Received",
+          message: `A new prescription fulfillment request${diagnosisText} from ${patientData.firstName} ${patientData.lastName} has been submitted.`,
+          link: "/pharmacy/prescriptions",
+          metadata: { fulfillmentId: result.id, prescriptionId, patientId: patient.id },
+        }).catch(() => {});
+      }
+    }
 
     return apiSuccess(
       {
