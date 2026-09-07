@@ -15,6 +15,7 @@ import {
   useDeleteAvailabilityExceptionMutation,
 } from "@/store/api/appointmentApi";
 import { DAYS_OF_WEEK } from "@/lib/constants";
+import { normalizeWeeklySchedule } from "@/lib/doctor-schedule";
 import { cn } from "@/utils/cn";
 
 const DAY_LABELS = DAYS_OF_WEEK.map((d) => d.label);
@@ -24,15 +25,6 @@ interface ScheduleEntry {
   startTime: string;
   endTime: string;
   active: boolean;
-}
-
-function buildDefaultSchedule(): ScheduleEntry[] {
-  return Array.from({ length: 7 }, (_, i) => ({
-    dayOfWeek: i,
-    startTime: "09:00",
-    endTime: "17:00",
-    active: false,
-  }));
 }
 
 export default function DoctorSchedulePage() {
@@ -45,15 +37,7 @@ export default function DoctorSchedulePage() {
 
   // Build schedule from API data, with local edits tracked separately
   const serverSchedule = useMemo<ScheduleEntry[]>(
-    () =>
-      scheduleData?.data
-        ? scheduleData.data.map((s) => ({
-            dayOfWeek: s.dayOfWeek,
-            startTime: s.startTime,
-            endTime: s.endTime,
-            active: s.active,
-          }))
-        : buildDefaultSchedule(),
+    () => normalizeWeeklySchedule(scheduleData?.data),
     [scheduleData],
   );
 
