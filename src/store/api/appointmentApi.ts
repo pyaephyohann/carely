@@ -103,6 +103,47 @@ export interface AvailabilityException {
   reason: string | null;
 }
 
+export interface DashboardAppointment {
+  id: string;
+  startTime: string;
+  endTime: string;
+  status: string;
+  type: string;
+  reason: string | null;
+  notes: string | null;
+  createdAt: string;
+  patient: AppointmentPatient;
+}
+
+export interface DoctorDashboardRecentPatient {
+  patient: AppointmentPatient;
+  lastAppointmentId: string;
+  lastAppointmentAt: string;
+  lastStatus: string;
+  lastType: string;
+}
+
+export interface DoctorDashboardData {
+  doctor: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatar: string | null;
+    timezone: string;
+  };
+  stats: {
+    todayAppointments: number;
+    pendingRequests: number;
+    completedAppointments: number;
+    totalPatients: number;
+  };
+  nextAppointment: DashboardAppointment | null;
+  todaySchedule: DashboardAppointment[];
+  pendingRequests: DashboardAppointment[];
+  upcomingAppointments: DashboardAppointment[];
+  recentPatients: DoctorDashboardRecentPatient[];
+}
+
 // =============================================================================
 // Appointment API
 // =============================================================================
@@ -173,6 +214,11 @@ export const appointmentApi = baseApi.injectEndpoints({
     }),
 
     // --- Doctor Appointments ---
+    getDoctorDashboard: builder.query<ApiResponse<DoctorDashboardData>, void>({
+      query: () => "/doctor/dashboard",
+      providesTags: [{ type: "Appointment", id: "DOCTOR_DASHBOARD" }, "Appointment"],
+    }),
+
     getDoctorAppointments: builder.query<
       AppointmentListResponse,
       { filter?: string; page?: number; limit?: number }
@@ -207,7 +253,7 @@ export const appointmentApi = baseApi.injectEndpoints({
         method: "PATCH",
         body,
       }),
-      invalidatesTags: ["Appointment"],
+      invalidatesTags: ["Appointment", { type: "Appointment", id: "DOCTOR_DASHBOARD" }],
     }),
 
     // --- Doctor Schedule ---
@@ -280,6 +326,7 @@ export const {
   useGetPatientAppointmentsQuery,
   useGetPatientAppointmentDetailQuery,
   useCancelPatientAppointmentMutation,
+  useGetDoctorDashboardQuery,
   useGetDoctorAppointmentsQuery,
   useGetDoctorAppointmentDetailQuery,
   useUpdateAppointmentStatusMutation,
