@@ -175,7 +175,13 @@ export const consultationApi = baseApi.injectEndpoints({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["Appointment", "Patient"],
+      invalidatesTags: (_result, _error, arg) => [
+        "Appointment",
+        "Prescription",
+        "Patient",
+        { type: "Appointment", id: arg.appointmentId },
+        { type: "Appointment", id: "DOCTOR_DASHBOARD" },
+      ],
     }),
 
     // --- Doctor: Get consultation detail ---
@@ -209,7 +215,7 @@ export const consultationApi = baseApi.injectEndpoints({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["Patient", "Prescription"],
+      invalidatesTags: ["Patient", "Prescription", "Appointment"],
     }),
 
     // --- Doctor: List prescriptions ---
@@ -268,10 +274,11 @@ export const consultationApi = baseApi.injectEndpoints({
     // --- Patient: Prescriptions ---
     getPatientPrescriptions: builder.query<
       { data: PrescriptionData[]; meta: PaginationMeta },
-      { status?: string; page?: number; limit?: number }
+      { filter?: string; status?: string; page?: number; limit?: number }
     >({
       query: (params) => {
         const sp = new URLSearchParams();
+        if (params.filter) sp.set("filter", params.filter);
         if (params.status) sp.set("status", params.status);
         if (params.page) sp.set("page", params.page.toString());
         if (params.limit) sp.set("limit", params.limit.toString());

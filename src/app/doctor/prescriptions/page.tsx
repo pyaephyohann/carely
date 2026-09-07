@@ -11,31 +11,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/features/patient/empty-state";
 import { Pagination } from "@/components/features/patient/pagination";
 import { useGetDoctorPrescriptionsQuery } from "@/store/api/consultationApi";
+import {
+  getPrescriptionStatusLabel,
+  getPrescriptionStatusVariant,
+} from "@/lib/prescription-utils";
 import { cn } from "@/utils/cn";
-
-function getStatusVariant(
-  status: string,
-): "default" | "primary" | "success" | "warning" | "error" | "info" {
-  const variants: Record<string, "default" | "primary" | "success" | "warning" | "error" | "info"> = {
-    DRAFT: "warning",
-    ACTIVE: "info",
-    FINALIZED: "primary",
-    COMPLETED: "success",
-    CANCELLED: "error",
-  };
-  return variants[status] || "default";
-}
-
-function getStatusLabel(status: string): string {
-  const labels: Record<string, string> = {
-    DRAFT: "Draft",
-    ACTIVE: "Active",
-    FINALIZED: "Finalized",
-    COMPLETED: "Completed",
-    CANCELLED: "Cancelled",
-  };
-  return labels[status] || status;
-}
 
 const FILTERS = [
   { value: "", label: "All" },
@@ -68,9 +48,10 @@ export default function DoctorPrescriptionsPage() {
         {FILTERS.map((f) => (
           <button
             key={f.value}
+            type="button"
             onClick={() => { setFilter(f.value); setPage(1); }}
             className={cn(
-              "px-4 py-1.5 text-sm font-medium rounded-md transition-colors",
+              "px-4 py-1.5 text-sm font-medium rounded-md transition-colors cursor-pointer",
               filter === f.value
                 ? "bg-background text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground",
@@ -127,15 +108,15 @@ export default function DoctorPrescriptionsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2, delay: idx * 0.03 }}
               >
-                <Link href={`/doctor/prescriptions/${rx.id}`}>
-                  <Card className="hover:shadow-sm transition-shadow cursor-pointer group">
+                <Link href={`/doctor/prescriptions/${rx.id}`} className="block cursor-pointer">
+                  <Card className="hover:shadow-sm transition-shadow group">
                     <CardContent className="p-5">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
                             <h3 className="font-medium text-foreground truncate">{rx.diagnosis}</h3>
-                            <Badge variant={getStatusVariant(rx.status)} size="sm">
-                              {getStatusLabel(rx.status)}
+                            <Badge variant={getPrescriptionStatusVariant(rx.status)} size="sm">
+                              {getPrescriptionStatusLabel(rx.status)}
                             </Badge>
                           </div>
                           <p className="text-sm text-muted-foreground">

@@ -61,6 +61,37 @@ export interface AppointmentDetail extends AppointmentListItem {
   updatedAt?: string;
   doctor: AppointmentDoctor;
   patient: AppointmentPatient;
+  consultation?: AppointmentConsultation | null;
+}
+
+export interface AppointmentConsultationPrescription {
+  id: string;
+  diagnosis: string;
+  notes: string | null;
+  status: string;
+  validUntil: string | null;
+  createdAt: string;
+  items: {
+    id: string;
+    medicineId: string;
+    medicineName: string;
+    medicineGenericName: string | null;
+    medicineCategory?: string;
+    dosage: string;
+    frequency: string;
+    duration: string;
+    instructions: string | null;
+  }[];
+}
+
+export interface AppointmentConsultation {
+  id: string;
+  diagnosis: string;
+  symptoms: string | null;
+  notes: string | null;
+  followUpDate: string | null;
+  createdAt: string;
+  prescriptions: AppointmentConsultationPrescription[];
 }
 
 export interface AppointmentListResponse {
@@ -253,7 +284,11 @@ export const appointmentApi = baseApi.injectEndpoints({
         method: "PATCH",
         body,
       }),
-      invalidatesTags: ["Appointment", { type: "Appointment", id: "DOCTOR_DASHBOARD" }],
+      invalidatesTags: (_result, _error, { appointmentId }) => [
+        "Appointment",
+        { type: "Appointment", id: "DOCTOR_DASHBOARD" },
+        { type: "Appointment", id: appointmentId },
+      ],
     }),
 
     // --- Doctor Schedule ---

@@ -62,6 +62,44 @@ export async function GET(
           },
         },
       },
+      consultation: {
+        select: {
+          id: true,
+          diagnosis: true,
+          symptoms: true,
+          notes: true,
+          followUpDate: true,
+          createdAt: true,
+          prescriptions: {
+            select: {
+              id: true,
+              diagnosis: true,
+              notes: true,
+              status: true,
+              validUntil: true,
+              createdAt: true,
+              items: {
+                select: {
+                  id: true,
+                  dosage: true,
+                  frequency: true,
+                  duration: true,
+                  instructions: true,
+                  medicine: {
+                    select: {
+                      id: true,
+                      name: true,
+                      genericName: true,
+                      category: true,
+                    },
+                  },
+                },
+              },
+            },
+            orderBy: { createdAt: "desc" },
+          },
+        },
+      },
     },
   });
 
@@ -92,5 +130,34 @@ export async function GET(
       dateOfBirth: appointment.patient.dateOfBirth?.toISOString() || null,
       gender: appointment.patient.gender,
     },
+    consultation: appointment.consultation
+      ? {
+          id: appointment.consultation.id,
+          diagnosis: appointment.consultation.diagnosis,
+          symptoms: appointment.consultation.symptoms,
+          notes: appointment.consultation.notes,
+          followUpDate: appointment.consultation.followUpDate?.toISOString() || null,
+          createdAt: appointment.consultation.createdAt.toISOString(),
+          prescriptions: appointment.consultation.prescriptions.map((rx) => ({
+            id: rx.id,
+            diagnosis: rx.diagnosis,
+            notes: rx.notes,
+            status: rx.status,
+            validUntil: rx.validUntil?.toISOString() || null,
+            createdAt: rx.createdAt.toISOString(),
+            items: rx.items.map((item) => ({
+              id: item.id,
+              medicineId: item.medicine.id,
+              medicineName: item.medicine.name,
+              medicineGenericName: item.medicine.genericName,
+              medicineCategory: item.medicine.category,
+              dosage: item.dosage,
+              frequency: item.frequency,
+              duration: item.duration,
+              instructions: item.instructions,
+            })),
+          })),
+        }
+      : null,
   });
 }

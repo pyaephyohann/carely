@@ -86,6 +86,8 @@ export async function GET(
       status: prescription.status,
       validUntil: prescription.validUntil?.toISOString() || null,
       createdAt: prescription.createdAt.toISOString(),
+      appointmentDate:
+        prescription.consultation?.appointment?.startTime?.toISOString() || null,
       doctor: {
         id: prescription.doctor.id,
         firstName: prescription.doctor.firstName,

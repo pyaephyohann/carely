@@ -18,30 +18,10 @@ import { Avatar } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/features/patient/empty-state";
 import { useGetDoctorPrescriptionQuery } from "@/store/api/consultationApi";
-
-function getStatusVariant(
-  status: string,
-): "default" | "primary" | "success" | "warning" | "error" | "info" {
-  const variants: Record<string, "default" | "primary" | "success" | "warning" | "error" | "info"> = {
-    DRAFT: "warning",
-    ACTIVE: "info",
-    FINALIZED: "primary",
-    COMPLETED: "success",
-    CANCELLED: "error",
-  };
-  return variants[status] || "default";
-}
-
-function getStatusLabel(status: string): string {
-  const labels: Record<string, string> = {
-    DRAFT: "Draft",
-    ACTIVE: "Active",
-    FINALIZED: "Finalized",
-    COMPLETED: "Completed",
-    CANCELLED: "Cancelled",
-  };
-  return labels[status] || status;
-}
+import {
+  getPrescriptionStatusLabel,
+  getPrescriptionStatusVariant,
+} from "@/lib/prescription-utils";
 
 export default function DoctorPrescriptionDetailPage() {
   const params = useParams();
@@ -88,7 +68,7 @@ export default function DoctorPrescriptionDetailPage() {
       <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
         <Link
           href="/doctor/prescriptions"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Prescriptions
@@ -100,8 +80,8 @@ export default function DoctorPrescriptionDetailPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <h1 className="text-xl font-semibold text-foreground">Prescription Details</h1>
-              <Badge variant={getStatusVariant(prescription.status)} size="md">
-                {getStatusLabel(prescription.status)}
+              <Badge variant={getPrescriptionStatusVariant(prescription.status)} size="md">
+                {getPrescriptionStatusLabel(prescription.status)}
               </Badge>
             </div>
           </CardHeader>

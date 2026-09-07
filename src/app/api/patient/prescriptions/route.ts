@@ -28,14 +28,22 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") || "20", 10)));
+    const filter = searchParams.get("filter") || "all"; // all, active, past
     const status = searchParams.get("status") || undefined;
     const skip = (page - 1) * limit;
 
     const where: Record<string, unknown> = {
       patientId: patient.id,
-      status: { not: "DRAFT" }, // Patients should not see draft prescriptions
+      status: { not: "DRAFT" },
     };
-    if (status) where.status = status;
+
+    if (status) {
+      where.status = status;
+    } else if (filter === "active") {
+      where.status = { in: ["ACTIVE", "FINALIZED"] };
+    } else if (filter === "past") {
+      where.status = { in: ["COMPLETED", "CANCELLED"] };
+    }
 
     const [prescriptions, total] = await Promise.all([
       prisma!.prescription.findMany({
