@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { Plus, Trash2, Pill, AlertCircle } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,8 @@ interface PrescriptionItemForm {
 }
 
 interface PrescriptionFormProps {
-  consultationId: string;
+  consultationId?: string;
+  appointmentId?: string;
   defaultDiagnosis?: string;
   onSuccess?: () => void;
   onCancel?: () => void;
@@ -35,6 +36,7 @@ function newRowId() {
 
 export function PrescriptionForm({
   consultationId,
+  appointmentId,
   defaultDiagnosis = "",
   onSuccess,
   onCancel,
@@ -102,6 +104,10 @@ export function PrescriptionForm({
 
   const handleSubmit = async () => {
     setFormError(null);
+    if (!consultationId && !appointmentId) {
+      setFormError("Missing appointment context. Please refresh and try again.");
+      return;
+    }
     const error = validate();
     if (error) {
       setFormError(error);
@@ -110,7 +116,7 @@ export function PrescriptionForm({
 
     try {
       await createPrescription({
-        consultationId,
+        ...(consultationId ? { consultationId } : { appointmentId: appointmentId! }),
         diagnosis: diagnosis.trim(),
         notes: notes.trim() || undefined,
         validUntil: validUntil || undefined,

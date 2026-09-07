@@ -33,6 +33,8 @@ interface PrescriptionItemForm {
 interface Props {
   appointmentId: string;
   patientName: string;
+  /** When true, marks appointment COMPLETED after saving visit notes */
+  completeAppointment?: boolean;
   onSuccess?: () => void;
   onCancel?: () => void;
 }
@@ -41,7 +43,13 @@ function newRowId() {
   return `row-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
-export function ConsultationForm({ appointmentId, patientName, onSuccess, onCancel }: Props) {
+export function ConsultationForm({
+  appointmentId,
+  patientName,
+  completeAppointment = false,
+  onSuccess,
+  onCancel,
+}: Props) {
   const [createConsultation, { isLoading: isCreating }] = useCreateConsultationMutation();
 
   const [diagnosis, setDiagnosis] = useState("");
@@ -141,6 +149,7 @@ export function ConsultationForm({ appointmentId, patientName, onSuccess, onCanc
       symptoms: symptoms.trim() || undefined,
       notes: notes.trim() || undefined,
       followUpDate: followUpDate || undefined,
+      completeAppointment,
     };
 
     if (addPrescription && prescriptionItems.length > 0) {
@@ -169,9 +178,10 @@ export function ConsultationForm({ appointmentId, patientName, onSuccess, onCanc
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-foreground">Consultation & Prescription</h2>
+        <h2 className="text-lg font-semibold text-foreground">Visit Notes</h2>
         <p className="text-sm text-muted-foreground">
-          Record visit details for {patientName}. Completing this marks the appointment as done.
+          Record consultation details for {patientName}. Saving notes does not require a
+          prescription and does not complete the appointment unless you choose to.
         </p>
       </div>
 
@@ -428,7 +438,7 @@ export function ConsultationForm({ appointmentId, patientName, onSuccess, onCanc
           </Button>
         )}
         <Button onClick={handleSubmit} isLoading={isCreating} className="cursor-pointer">
-          {addPrescription ? "Complete Visit & Save Prescription" : "Complete Visit"}
+          {addPrescription ? "Save Visit Notes & Prescription" : "Save Visit Notes"}
         </Button>
       </div>
     </div>

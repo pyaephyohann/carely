@@ -44,6 +44,7 @@ import {
   getPrescriptionStatusLabel,
   getPrescriptionStatusVariant,
 } from "@/lib/prescription-utils";
+import { isClinicalAppointmentStatus } from "@/lib/prescription-service";
 
 export default function DoctorAppointmentDetailPage() {
   const params = useParams();
@@ -97,6 +98,9 @@ export default function DoctorAppointmentDetailPage() {
   const validTransitions = getValidTransitions(appointment.status);
   const consultation = appointment.consultation;
   const prescriptions = consultation?.prescriptions ?? [];
+  const isClinical = isClinicalAppointmentStatus(appointment.status);
+  const hasPrescription = prescriptions.length > 0;
+  const canMarkCompleted = validTransitions.includes("COMPLETED");
 
   const handleStatusUpdate = async (status: string, cancelReason?: string) => {
     try {
@@ -256,7 +260,7 @@ export default function DoctorAppointmentDetailPage() {
               </div>
             )}
 
-            {validTransitions.length > 0 && !consultation && (
+            {validTransitions.length > 0 && appointment.status === "PENDING" && (
               <div className="border-t border-border pt-4">
                 <div className="flex flex-wrap gap-2">
                   {validTransitions.includes("CONFIRMED") && (
@@ -268,13 +272,54 @@ export default function DoctorAppointmentDetailPage() {
                       Accept Request
                     </Button>
                   )}
-                  {validTransitions.includes("COMPLETED") && (
+                  {validTransitions.includes("CANCELLED") && (
                     <Button
-                      onClick={() => setShowConsultation(!showConsultation)}
+                      variant="danger"
+                      onClick={() =>
+                        handleStatusUpdate("CANCELLED", DOCTOR_REJECT_REASON)
+                      }
+                      isLoading={isUpdating}
+                      className="cursor-pointer"
+                    >
+                      Reject Request
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {isClinical && (
+              <div className="border-t border-border pt-4 space-y-3">
+                <h3 className="text-sm font-medium text-muted-foreground">Clinical Actions</h3>
+                <div className="flex flex-wrap gap-2">
+                  {!hasPrescription && !showPrescriptionForm && (
+                    <Button
+                      onClick={() => setShowPrescriptionForm(true)}
+                      className="cursor-pointer"
+                    >
+                      <Pill className="h-4 w-4" />
+                      Create Prescription
+                    </Button>
+                  )}
+                  {canMarkCompleted && (
+                    <Button
+                      variant="outline"
+                      onClick={() => handleStatusUpdate("COMPLETED")}
+                      isLoading={isUpdating}
                       className="cursor-pointer"
                     >
                       <Stethoscope className="h-4 w-4" />
-                      {showConsultation ? "Hide Consultation" : "Start Consultation"}
+                      Mark as Completed
+                    </Button>
+                  )}
+                  {!consultation && !showConsultation && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowConsultation(true)}
+                      className="cursor-pointer"
+                    >
+                      <FileText className="h-4 w-4" />
+                      Add Visit Notes
                     </Button>
                   )}
                   {validTransitions.includes("NO_SHOW") && (
@@ -287,19 +332,14 @@ export default function DoctorAppointmentDetailPage() {
                       Mark No Show
                     </Button>
                   )}
-                  {validTransitions.includes("CANCELLED") && (
+                  {validTransitions.includes("CANCELLED") && appointment.status === "CONFIRMED" && (
                     <Button
                       variant="danger"
-                      onClick={() =>
-                        handleStatusUpdate(
-                          "CANCELLED",
-                          appointment.status === "PENDING" ? DOCTOR_REJECT_REASON : undefined,
-                        )
-                      }
+                      onClick={() => handleStatusUpdate("CANCELLED")}
                       isLoading={isUpdating}
                       className="cursor-pointer"
                     >
-                      {appointment.status === "PENDING" ? "Reject Request" : "Cancel Appointment"}
+                      Cancel Appointment
                     </Button>
                   )}
                 </div>
@@ -363,16 +403,16 @@ export default function DoctorAppointmentDetailPage() {
         </Card>
       )}
 
-      {/* Prescriptions section */}
-      {(consultation || showPrescriptionForm) && (
+      {/* Prescriptions section — available for confirmed/completed visits */}
+      {(isClinical || showPrescriptionForm) && (
         <Card>
           <CardHeader>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center gap-2">
                 <Pill className="h-5 w-5 text-violet-600 dark:text-violet-400" />
-                <h2 className="text-lg font-semibold text-foreground">Prescriptions</h2>
+                <h2 className="text-lg font-semibold text-foreground">Prescription</h2>
               </div>
-              {consultation && prescriptions.length === 0 && !showPrescriptionForm && (
+              {!hasPrescription && !showPrescriptionForm && (
                 <Button
                   size="sm"
                   onClick={() => setShowPrescriptionForm(true)}
@@ -418,7 +458,7 @@ export default function DoctorAppointmentDetailPage() {
                   </div>
                   <Link href={`/doctor/prescriptions/${rx.id}`}>
                     <Button variant="outline" size="sm" className="cursor-pointer">
-                      View Full Prescription
+                      View Prescription
                     </Button>
                   </Link>
                 </div>
@@ -429,10 +469,11 @@ export default function DoctorAppointmentDetailPage() {
               </p>
             ) : null}
 
-            {showPrescriptionForm && consultation && (
+            {showPrescriptionForm && (
               <PrescriptionForm
-                consultationId={consultation.id}
-                defaultDiagnosis={consultation.diagnosis}
+                consultationId={consultation?.id}
+                appointmentId={consultation ? undefined : appointment.id}
+                defaultDiagnosis={consultation?.diagnosis || appointment.reason || ""}
                 onSuccess={handlePrescriptionSuccess}
                 onCancel={() => setShowPrescriptionForm(false)}
               />

@@ -17,8 +17,9 @@ export async function GET(request: NextRequest) {
   if (!auth.authenticated) return auth.response;
 
   try {
-    const patient = await prisma!.patient.findUnique({
+    const patient = await prisma!.patient.findFirst({
       where: { userId: auth.user.userId },
+      select: { id: true },
     });
 
     if (!patient) {
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") || "20", 10)));
-    const filter = searchParams.get("filter") || "all"; // all, active, past
+    const filter = searchParams.get("filter") || "all";
     const status = searchParams.get("status") || undefined;
     const skip = (page - 1) * limit;
 

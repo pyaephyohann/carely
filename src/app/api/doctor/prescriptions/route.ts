@@ -3,12 +3,14 @@ import { logError } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { requireDoctor } from "@/lib/auth-helpers";
 import { requireDatabase, apiError, apiSuccess } from "@/lib/api";
-import { prescriptionSchema } from "@/lib/validation";
+import { prescriptionCreateSchema } from "@/lib/validation";
 import { onPrescriptionFinalized } from "@/lib/notifications/events";
+import { ensureConsultationForAppointment } from "@/lib/prescription-service";
 
 // =============================================================================
 // POST /api/doctor/prescriptions
-// Create a prescription for an existing consultation (doctor must own the consultation)
+// Create prescription — consultationId OR appointmentId (ownership from session)
+// Does NOT change appointment status.
 // =============================================================================
 
 export async function POST(request: NextRequest) {
@@ -20,7 +22,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const validation = prescriptionSchema.safeParse(body);
+    const validation = prescriptionCreateSchema.safeParse(body);
 
     if (!validation.success) {
       return apiError("Validation failed", "VALIDATION_ERROR", 400, {
@@ -28,30 +30,69 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const { consultationId, diagnosis, notes, validUntil, items } = validation.data;
+    const { consultationId, appointmentId, diagnosis, notes, validUntil, items } =
+      validation.data;
 
-    const doctor = await prisma!.doctor.findUnique({
+    const doctor = await prisma!.doctor.findFirst({
       where: { userId: auth.user.userId },
+      select: { id: true, firstName: true, lastName: true },
     });
 
     if (!doctor) {
       return apiError("Doctor profile not found", "NOT_FOUND", 404);
     }
 
-    // Verify consultation exists and doctor owns it
-    const consultation = await prisma!.consultation.findUnique({
-      where: { id: consultationId },
-    });
+    let resolvedConsultationId = consultationId;
+    let patientId: string;
 
-    if (!consultation) {
-      return apiError("Consultation not found", "NOT_FOUND", 404);
+    if (appointmentId) {
+      const ensured = await ensureConsultationForAppointment(prisma!, {
+        appointmentId,
+        doctorId: doctor.id,
+        diagnosis,
+      });
+
+      if ("error" in ensured) {
+        if (ensured.error === "NOT_FOUND") {
+          return apiError("Appointment not found", "NOT_FOUND", 404);
+        }
+        return apiError(
+          `Prescriptions can only be created for confirmed or completed appointments (current: "${ensured.status}").`,
+          "INVALID_STATUS",
+          422,
+        );
+      }
+
+      resolvedConsultationId = ensured.consultation.id;
+      patientId = ensured.appointment.patientId;
+    } else {
+      const consultation = await prisma!.consultation.findFirst({
+        where: {
+          id: consultationId,
+          doctorId: doctor.id,
+        },
+        include: {
+          appointment: { select: { status: true, patientId: true } },
+        },
+      });
+
+      if (!consultation) {
+        return apiError("Consultation not found", "NOT_FOUND", 404);
+      }
+
+      const apptStatus = consultation.appointment.status;
+      if (apptStatus !== "CONFIRMED" && apptStatus !== "COMPLETED") {
+        return apiError(
+          `Prescriptions can only be created for confirmed or completed appointments (current: "${apptStatus}").`,
+          "INVALID_STATUS",
+          422,
+        );
+      }
+
+      resolvedConsultationId = consultation.id;
+      patientId = consultation.patientId;
     }
 
-    if (consultation.doctorId !== doctor.id) {
-      return apiError("Access denied", "FORBIDDEN", 403);
-    }
-
-    // Validate medicine IDs exist
     const medicineIds = items.map((i) => i.medicineId);
     const validMedicines = await prisma!.medicine.findMany({
       where: { id: { in: medicineIds }, active: true },
@@ -68,12 +109,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create prescription with items
     const prescription = await prisma!.prescription.create({
       data: {
-        consultationId,
+        consultationId: resolvedConsultationId!,
         doctorId: doctor.id,
-        patientId: consultation.patientId,
+        patientId,
         diagnosis,
         notes: notes || null,
         status: "FINALIZED",
@@ -89,26 +129,20 @@ export async function POST(request: NextRequest) {
         },
       },
       include: {
-        items: {
-          include: { medicine: true },
-        },
+        items: { include: { medicine: true } },
       },
     });
 
     const patientUser = await prisma!.patient.findUnique({
-      where: { id: consultation.patientId },
+      where: { id: patientId },
       select: { userId: true },
     });
-    const doctorProfile = await prisma!.doctor.findUnique({
-      where: { id: doctor.id },
-      select: { firstName: true, lastName: true },
-    });
 
-    if (patientUser && doctorProfile) {
+    if (patientUser) {
       onPrescriptionFinalized({
         prescriptionId: prescription.id,
         patientUserId: patientUser.userId,
-        doctorName: `${doctorProfile.firstName} ${doctorProfile.lastName}`,
+        doctorName: `${doctor.firstName} ${doctor.lastName}`,
         diagnosis: prescription.diagnosis,
         itemCount: prescription.items.length,
       }).catch(() => {});
@@ -155,7 +189,7 @@ export async function GET(request: NextRequest) {
   if (!auth.authenticated) return auth.response;
 
   try {
-    const doctor = await prisma!.doctor.findUnique({
+    const doctor = await prisma!.doctor.findFirst({
       where: { userId: auth.user.userId },
     });
 
@@ -176,15 +210,9 @@ export async function GET(request: NextRequest) {
       prisma!.prescription.findMany({
         where,
         include: {
-          items: {
-            include: { medicine: true },
-          },
-          patient: {
-            select: { firstName: true, lastName: true },
-          },
-          consultation: {
-            select: { id: true, diagnosis: true },
-          },
+          items: { include: { medicine: true } },
+          patient: { select: { firstName: true, lastName: true } },
+          consultation: { select: { id: true, diagnosis: true } },
         },
         orderBy: { createdAt: "desc" },
         skip,

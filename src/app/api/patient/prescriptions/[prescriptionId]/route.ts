@@ -22,16 +22,21 @@ export async function GET(
   try {
     const { prescriptionId } = await params;
 
-    const patient = await prisma!.patient.findUnique({
+    const patient = await prisma!.patient.findFirst({
       where: { userId: auth.user.userId },
+      select: { id: true },
     });
 
     if (!patient) {
       return apiError("Patient profile not found", "NOT_FOUND", 404);
     }
 
-    const prescription = await prisma!.prescription.findUnique({
-      where: { id: prescriptionId },
+    const prescription = await prisma!.prescription.findFirst({
+      where: {
+        id: prescriptionId,
+        patientId: patient.id,
+        status: { not: "DRAFT" },
+      },
       include: {
         items: {
           include: { medicine: true },
@@ -68,15 +73,6 @@ export async function GET(
 
     if (!prescription) {
       return apiError("Prescription not found", "NOT_FOUND", 404);
-    }
-
-    // Authorization: patient must own the prescription and it can't be a draft
-    if (prescription.patientId !== patient.id) {
-      return apiError("Access denied", "FORBIDDEN", 403);
-    }
-
-    if (prescription.status === "DRAFT") {
-      return apiError("Prescription not available yet", "NOT_FOUND", 404);
     }
 
     return apiSuccess({

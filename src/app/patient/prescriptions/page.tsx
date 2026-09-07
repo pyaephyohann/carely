@@ -34,11 +34,11 @@ const FILTERS = [
 type FilterValue = (typeof FILTERS)[number]["value"];
 
 export default function PrescriptionsPage() {
-  const [filter, setFilter] = useState<FilterValue>("active");
+  const [filter, setFilter] = useState<FilterValue>("all");
   const [page, setPage] = useState(1);
 
   const { data, isLoading, error, refetch, isFetching } = useGetPatientPrescriptionsQuery(
-    { filter: filter === "all" ? undefined : filter, page, limit: 10 },
+    { filter, page, limit: 10 },
     { refetchOnFocus: true, pollingInterval: 30_000 },
   );
 
@@ -124,7 +124,7 @@ export default function PrescriptionsPage() {
             <EmptyState
               icon={<FileText className="h-8 w-8" />}
               title="No prescriptions yet"
-              description="Your prescriptions will appear here after your doctor provides one following a visit."
+              description="Your prescriptions from completed consultations will appear here."
               action={
                 <Link href="/patient/doctors">
                   <Button className="cursor-pointer">Find a Doctor</Button>

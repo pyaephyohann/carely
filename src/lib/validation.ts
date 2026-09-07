@@ -89,6 +89,29 @@ export const prescriptionSchema = z.object({
   items: z.array(prescriptionItemSchema).min(1, "At least one medicine is required").max(20, "Maximum 20 items per prescription"),
 });
 
+/** Create prescription by consultationId OR appointmentId (server resolves patient/doctor) */
+export const prescriptionCreateSchema = z
+  .object({
+    consultationId: z.string().min(1).optional(),
+    appointmentId: z.string().min(1).optional(),
+    diagnosis: z.string().min(1, "Diagnosis is required").max(2000),
+    notes: z.string().max(2000).optional(),
+    validUntil: z.string().optional(),
+    items: z
+      .array(prescriptionItemSchema)
+      .min(1, "At least one medicine is required")
+      .max(20, "Maximum 20 items per prescription"),
+  })
+  .refine((data) => Boolean(data.consultationId || data.appointmentId), {
+    message: "Either consultationId or appointmentId is required",
+    path: ["appointmentId"],
+  });
+
+export const consultationCreateSchema = consultationSchema.extend({
+  /** When true, marks appointment COMPLETED after saving consultation (optional) */
+  completeAppointment: z.boolean().optional(),
+});
+
 export const prescriptionUpdateSchema = z.object({
   diagnosis: z.string().min(1).max(2000).optional(),
   notes: z.string().max(2000).optional(),

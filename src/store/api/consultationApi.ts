@@ -111,6 +111,8 @@ export interface CreateConsultationRequest {
   symptoms?: string;
   notes?: string;
   followUpDate?: string;
+  /** When true, marks appointment COMPLETED after saving (optional) */
+  completeAppointment?: boolean;
   prescription?: {
     diagnosis: string;
     notes?: string;
@@ -133,7 +135,8 @@ export interface UpdateConsultationRequest {
 }
 
 export interface CreatePrescriptionRequest {
-  consultationId: string;
+  consultationId?: string;
+  appointmentId?: string;
   diagnosis: string;
   notes?: string;
   validUntil?: string;
@@ -215,7 +218,14 @@ export const consultationApi = baseApi.injectEndpoints({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["Patient", "Prescription", "Appointment"],
+      invalidatesTags: (_result, _error, arg) => [
+        "Patient",
+        "Prescription",
+        "Appointment",
+        ...(arg.appointmentId
+          ? [{ type: "Appointment" as const, id: arg.appointmentId }]
+          : []),
+      ],
     }),
 
     // --- Doctor: List prescriptions ---
