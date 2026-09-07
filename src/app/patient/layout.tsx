@@ -28,7 +28,7 @@ import { cn } from "@/utils/cn";
 const navItems = [
   { href: "/patient/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/patient/doctors", label: "Find Doctors", icon: Stethoscope },
-  { href: "/patient/appointments", label: "Appointments", icon: Calendar, disabled: true },
+  { href: "/patient/appointments", label: "Appointments", icon: Calendar },
   { href: "/patient/prescriptions", label: "Prescriptions", icon: FileText, disabled: true },
   { href: "/patient/records", label: "Medical Records", icon: ClipboardList, disabled: true },
   { href: "/patient/profile", label: "Profile", icon: UserCircle },

@@ -210,7 +210,7 @@ export const appointmentApi = baseApi.injectEndpoints({
         method: "POST",
         body,
       }),
-      invalidatesTags: ["Appointment"],
+      invalidatesTags: ["Appointment", { type: "Appointment", id: "DOCTOR_DASHBOARD" }],
     }),
 
     // --- Doctor Appointments ---
