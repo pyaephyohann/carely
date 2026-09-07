@@ -30,7 +30,7 @@ const navItems = [
   { href: "/doctor/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/doctor/appointments", label: "Appointments", icon: Calendar },
   { href: "/doctor/schedule", label: "My Schedule", icon: Settings },
-  { href: "/doctor/patients", label: "Patients", icon: Users, disabled: true },
+  { href: "/doctor/patients", label: "Patients", icon: Users },
   { href: "/doctor/consultations", label: "Consultations", icon: Activity, disabled: true },
   { href: "/doctor/prescriptions", label: "Prescriptions", icon: Pill },
   { href: "/doctor/profile", label: "Profile", icon: UserCircle },
@@ -91,7 +91,9 @@ export default function DoctorLayout({
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive =
+              pathname === item.href ||
+              (item.href !== "/doctor/dashboard" && pathname.startsWith(`${item.href}/`));
             const Icon = item.icon;
             return (
               <Link
@@ -102,8 +104,8 @@ export default function DoctorLayout({
                   item.disabled
                     ? "text-zinc-400 dark:text-zinc-600 cursor-not-allowed"
                     : isActive
-                      ? "bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-400"
-                      : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100",
+                      ? "bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-400 cursor-pointer"
+                      : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 cursor-pointer",
                 )}
                 title={collapsed ? item.label : undefined}
                 aria-disabled={item.disabled}
@@ -166,7 +168,9 @@ export default function DoctorLayout({
               </div>
               <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
                 {navItems.map((item) => {
-                  const isActive = pathname === item.href;
+                  const isActive =
+              pathname === item.href ||
+              (item.href !== "/doctor/dashboard" && pathname.startsWith(`${item.href}/`));
                   const Icon = item.icon;
                   return (
                     <Link
