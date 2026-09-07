@@ -23,7 +23,11 @@ async function req(method, path, body, cookies) {
   if (body !== undefined) opts.body = typeof body === "string" ? body : JSON.stringify(body);
 
   const resp = await fetch(url, opts);
-  const setCookie = resp.headers.get("set-cookie") || "";
+  // Prefer getSetCookie() so multi Set-Cookie headers are not lost/joined incorrectly
+  const setCookie =
+    typeof resp.headers.getSetCookie === "function"
+      ? resp.headers.getSetCookie().join("; ")
+      : resp.headers.get("set-cookie") || "";
   let jsonBody;
   try { jsonBody = await resp.json(); } catch { jsonBody = null; }
 

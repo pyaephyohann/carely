@@ -4,7 +4,8 @@ import { prisma } from "@/lib/prisma";
 import {
   signAccessToken,
   signRefreshToken,
-  setAuthCookies,
+  buildAuthCookies,
+  applySetCookieHeaders,
 } from "@/lib/auth";
 import { requireDatabase, apiError, apiSuccess } from "@/lib/api";
 import { rateLimit, getRateLimitKey } from "@/lib/rate-limit";
@@ -106,10 +107,11 @@ export async function POST(request: Request) {
       },
     });
 
-    // Set cookies
-    const cookieHeader = response.headers.get("set-cookie") || "";
-    const newCookies = setAuthCookies(cookieHeader, accessToken, refreshToken, rememberMe);
-    response.headers.set("set-cookie", newCookies);
+    // Set cookies as separate Set-Cookie headers (required by browsers)
+    applySetCookieHeaders(
+      response.headers,
+      buildAuthCookies(accessToken, refreshToken, rememberMe),
+    );
 
     return response;
   } catch (error) {

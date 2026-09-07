@@ -82,10 +82,14 @@ export async function verifyRefreshToken(token: string): Promise<RefreshTokenPay
 // =============================================================================
 // Cookie Helpers (Edge Runtime compatible)
 // =============================================================================
+// IMPORTANT: Each cookie MUST be sent as its own Set-Cookie header.
+// Packing multiple cookies into one header (joined with "; ") is invalid HTTP
+// and browsers typically keep only the first cookie — breaking refresh.
 
 const ACCESS_TOKEN_NAME = "carely_access_token";
 const REFRESH_TOKEN_NAME = "carely_refresh_token";
 const COOKIE_PATH = "/";
+const ACCESS_TOKEN_MAX_AGE = 15 * 60; // 15 minutes
 
 function getCookieOptions(maxAge: number): string {
   const isProd = process.env.NODE_ENV === "production";
@@ -99,58 +103,64 @@ function getCookieOptions(maxAge: number): string {
   return parts.join("; ");
 }
 
-export function setAccessTokenCookie(
-  cookieHeader: string | null,
-  token: string,
-): string {
-  const maxAge = 15 * 60; // 15 minutes
-  const cookie = `${ACCESS_TOKEN_NAME}=${token}; ${getCookieOptions(maxAge)}`;
-  const existing = cookieHeader || "";
-  const filtered = existing
-    .split("; ")
-    .filter((c) => !c.startsWith(`${ACCESS_TOKEN_NAME}=`))
-    .join("; ");
-  return filtered ? `${filtered}; ${cookie}` : cookie;
+function getClearCookieOptions(): string {
+  const isProd = process.env.NODE_ENV === "production";
+  const parts = [
+    `Path=${COOKIE_PATH}`,
+    "Max-Age=0",
+    "HttpOnly",
+    isProd ? "Secure" : "",
+    "SameSite=Lax",
+  ].filter(Boolean);
+  return parts.join("; ");
 }
 
-export function setRefreshTokenCookie(
-  cookieHeader: string | null,
+/** Build a single access-token Set-Cookie value (no header name). */
+export function buildAccessTokenCookie(token: string): string {
+  return `${ACCESS_TOKEN_NAME}=${token}; ${getCookieOptions(ACCESS_TOKEN_MAX_AGE)}`;
+}
+
+/** Build a single refresh-token Set-Cookie value (no header name). */
+export function buildRefreshTokenCookie(
   token: string,
   rememberMe: boolean = false,
 ): string {
   const maxAge = rememberMe ? 30 * 24 * 60 * 60 : 7 * 24 * 60 * 60; // 30d or 7d
-  const cookie = `${REFRESH_TOKEN_NAME}=${token}; ${getCookieOptions(maxAge)}`;
-  const existing = cookieHeader || "";
-  const filtered = existing
-    .split("; ")
-    .filter((c) => !c.startsWith(`${REFRESH_TOKEN_NAME}=`))
-    .join("; ");
-  return filtered ? `${filtered}; ${cookie}` : cookie;
+  return `${REFRESH_TOKEN_NAME}=${token}; ${getCookieOptions(maxAge)}`;
 }
 
-export function setAuthCookies(
-  cookieHeader: string | null,
+/** Build both auth Set-Cookie values as separate strings. */
+export function buildAuthCookies(
   accessToken: string,
   refreshToken: string,
   rememberMe: boolean = false,
-): string {
-  let result = setAccessTokenCookie(cookieHeader, accessToken);
-  result = setRefreshTokenCookie(result, refreshToken, rememberMe);
-  return result;
+): string[] {
+  return [
+    buildAccessTokenCookie(accessToken),
+    buildRefreshTokenCookie(refreshToken, rememberMe),
+  ];
 }
 
-export function clearAuthCookies(cookieHeader: string | null): string {
-  const expired = "Max-Age=0; Path=/; HttpOnly; SameSite=Lax";
-  const existing = cookieHeader || "";
-  const filtered = existing
-    .split("; ")
-    .filter(
-      (c) =>
-        !c.startsWith(`${ACCESS_TOKEN_NAME}=`) &&
-        !c.startsWith(`${REFRESH_TOKEN_NAME}=`),
-    )
-    .join("; ");
-  return `${filtered}; ${ACCESS_TOKEN_NAME}=; ${expired}; ${REFRESH_TOKEN_NAME}=; ${expired}`.replace(/^;\s*/, "");
+/** Build Set-Cookie values that clear both auth cookies. */
+export function buildClearAuthCookies(): string[] {
+  const clearOpts = getClearCookieOptions();
+  return [
+    `${ACCESS_TOKEN_NAME}=; ${clearOpts}`,
+    `${REFRESH_TOKEN_NAME}=; ${clearOpts}`,
+  ];
+}
+
+/**
+ * Append each cookie as its own Set-Cookie header.
+ * Prefer this over headers.set("Set-Cookie", ...).
+ */
+export function applySetCookieHeaders(
+  headers: Headers,
+  cookies: string[],
+): void {
+  for (const cookie of cookies) {
+    headers.append("Set-Cookie", cookie);
+  }
 }
 
 export function parseCookies(cookieHeader: string | null): Record<string, string> {

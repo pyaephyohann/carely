@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Heart, LogOut } from "lucide-react";
@@ -10,8 +10,9 @@ import { Avatar } from "@/components/ui/avatar";
 import { ThemeSwitcher } from "@/components/theme";
 import { NotificationCenter } from "@/components/features/notifications";
 import { cn } from "@/utils/cn";
-import { useAppSelector, useAppDispatch } from "@/hooks/useRedux";
-import { selectCurrentUser, selectIsAuthenticated, logout } from "@/store/slices/authSlice";
+import { useAppSelector } from "@/hooks/useRedux";
+import { selectCurrentUser, selectIsAuthenticated } from "@/store/slices/authSlice";
+import { useLogout } from "@/hooks/useLogout";
 
 const navLinks = [
   { href: "/patient/doctors", label: "Find Doctors" },
@@ -33,27 +34,15 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 export function Header() {
-  const router = useRouter();
   const pathname = usePathname();
-  const dispatch = useAppDispatch();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { logout: logoutUser, isLoggingOut } = useLogout();
 
   const user = useAppSelector(selectCurrentUser);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
 
-  const handleLogout = async () => {
-    setIsLoggingOut(true);
-    try {
-      await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" });
-      dispatch(logout());
-      router.push("/login");
-    } catch {
-      dispatch(logout());
-      router.push("/login");
-    } finally {
-      setIsLoggingOut(false);
-    }
+  const handleLogout = () => {
+    void logoutUser();
   };
 
   const profileName = user?.profile as Record<string, string> | undefined;

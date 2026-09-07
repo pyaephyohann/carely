@@ -1,9 +1,15 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { useAppDispatch } from "@/hooks/useRedux";
-import { setUser } from "@/store/slices/authSlice";
+import { useAppDispatch, useAppSelector } from "@/hooks/useRedux";
+import {
+  setUser,
+  setLoading,
+  selectIsAuthenticated,
+  selectIsLoading,
+} from "@/store/slices/authSlice";
+import { refreshAuthSession, authLog } from "@/lib/auth-session";
 import type { User } from "@/types";
 
 const PUBLIC_PATHS = ["/", "/login", "/register", "/forgot-password", "/about", "/features", "/contact"];
@@ -14,48 +20,99 @@ function isPublicPath(pathname: string): boolean {
   return false;
 }
 
+function mapMeUser(data: {
+  id: string;
+  email: string;
+  role: User["role"];
+  status: User["status"];
+  createdAt: string;
+  updatedAt: string;
+}): User {
+  return {
+    id: data.id,
+    email: data.email,
+    role: data.role,
+    status: data.status,
+    createdAt: data.createdAt,
+    updatedAt: data.updatedAt,
+  };
+}
+
+/**
+ * Shared session bootstrap + protected-route redirect.
+ *
+ * Critical behaviors:
+ * - Bootstrap once on mount (NOT on every pathname change) — pathname
+ *   re-checks previously wiped Redux after login and forced /login when
+ *   opening routes like /doctor/schedule.
+ * - Attempt refresh before treating 401 as logged-out.
+ * - Only redirect after a confirmed unauthenticated decision, or after a
+ *   previously authenticated session is cleared (logout / failed refresh).
+ * - Never treat loading / network / 5xx as "must login".
+ */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const pathname = usePathname();
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
+  const isLoading = useAppSelector(selectIsLoading);
+  /** Set when /me (+ optional refresh) proved there is no session. */
+  const confirmedUnauthenticated = useRef(false);
+  /** Tracks that we had a hydrated session this page lifetime. */
+  const hadAuthenticatedSession = useRef(false);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      hadAuthenticatedSession.current = true;
+      confirmedUnauthenticated.current = false;
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
     let cancelled = false;
 
     async function checkSession() {
       try {
-        const response = await fetch("/api/users/me", {
+        authLog("Session bootstrap — requesting /api/users/me");
+        let response = await fetch("/api/users/me", {
           credentials: "same-origin",
         });
+
+        if (response.status === 401) {
+          authLog("API returned 401 — attempting session refresh");
+          const refreshed = await refreshAuthSession();
+          if (refreshed) {
+            response = await fetch("/api/users/me", {
+              credentials: "same-origin",
+            });
+          }
+        }
 
         if (cancelled) return;
 
         if (response.ok) {
           const json = await response.json();
           if (json.success && json.data) {
-            const userData: User = {
-              id: json.data.id,
-              email: json.data.email,
-              role: json.data.role as User["role"],
-              status: json.data.status as User["status"],
-              createdAt: json.data.createdAt,
-              updatedAt: json.data.updatedAt,
-            };
-            dispatch(setUser(userData));
+            authLog("Session present — user hydrated");
+            confirmedUnauthenticated.current = false;
+            dispatch(setUser(mapMeUser(json.data)));
             return;
           }
         }
 
-        // No valid session
-        dispatch(setUser(null));
-
-        // Redirect to login if on a protected route
-        if (!isPublicPath(pathname)) {
-          router.replace(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
+        if (response.status === 401 || response.status === 403) {
+          authLog(`Session invalid after recovery (status ${response.status})`);
+          confirmedUnauthenticated.current = true;
+          dispatch(setUser(null));
+          return;
         }
+
+        authLog(`Session check non-auth failure (status ${response.status}) — keeping state`);
+        dispatch(setLoading(false));
       } catch {
         if (cancelled) return;
-        dispatch(setUser(null));
+        authLog("Session check network error — keeping current state");
+        dispatch(setLoading(false));
       }
     }
 
@@ -64,7 +121,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [dispatch, router, pathname]);
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (isLoading) return;
+    if (isAuthenticated) return;
+    if (isPublicPath(pathname)) return;
+
+    const shouldRedirect =
+      confirmedUnauthenticated.current || hadAuthenticatedSession.current;
+
+    if (!shouldRedirect) return;
+
+    authLog(`Unauthenticated access to protected path ${pathname} — redirecting to login`);
+    router.replace(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
+  }, [isLoading, isAuthenticated, pathname, router]);
 
   return <>{children}</>;
 }

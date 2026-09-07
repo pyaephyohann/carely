@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAppDispatch } from "@/hooks/useRedux";
@@ -10,7 +10,6 @@ import { setUser } from "@/store/slices/authSlice";
 import type { User } from "@/types";
 
 export default function LoginPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
   const callbackUrl = searchParams.get("callbackUrl");
@@ -51,16 +50,23 @@ export default function LoginPage() {
         };
         dispatch(setUser(userData));
 
-        if (callbackUrl) {
-          router.push(callbackUrl);
-        } else {
-          const roleRoutes: Record<string, string> = {
-            PATIENT: "/patient/dashboard",
-            DOCTOR: "/doctor/dashboard",
-            ADMIN: "/admin/dashboard",
-          };
-          router.push(roleRoutes[userData.role] || "/patient/dashboard");
-        }
+        // Full navigation after login so Set-Cookie is committed before the
+        // protected route/middleware/AuthProvider run. Soft client transitions
+        // (especially callbackUrl=/doctor/schedule) previously raced and
+        // looked like an unexpected re-login.
+        const roleRoutes: Record<string, string> = {
+          PATIENT: "/patient/dashboard",
+          DOCTOR: "/doctor/dashboard",
+          ADMIN: "/admin/dashboard",
+          PHARMACY: "/pharmacy/dashboard",
+        };
+        const target =
+          callbackUrl && callbackUrl.startsWith("/") && !callbackUrl.startsWith("//")
+            ? callbackUrl
+            : roleRoutes[userData.role] || "/patient/dashboard";
+
+        window.location.assign(target);
+        return;
       }
     } catch {
       setError("An unexpected error occurred. Please try again.");

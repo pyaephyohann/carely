@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
@@ -21,6 +21,7 @@ import {
 import { NotificationCenter } from "@/components/features/notifications";
 import { useAppSelector } from "@/hooks/useRedux";
 import { selectCurrentUser, selectIsLoading } from "@/store/slices/authSlice";
+import { useLogout } from "@/hooks/useLogout";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/utils/cn";
@@ -43,7 +44,7 @@ export default function DoctorLayout({
   const user = useAppSelector(selectCurrentUser);
   const isLoading = useAppSelector(selectIsLoading);
   const pathname = usePathname();
-  const router = useRouter();
+  const { logout: logoutUser, isLoggingOut } = useLogout();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -192,7 +193,14 @@ export default function DoctorLayout({
                     <p className="text-xs text-muted-foreground">Doctor</p>
                   </div>
                 </div>
-                <Button variant="ghost" className="w-full justify-start text-zinc-500" onClick={async () => { await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" }); router.push("/login"); }}>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start text-zinc-500"
+                  disabled={isLoggingOut}
+                  onClick={() => {
+                    void logoutUser();
+                  }}
+                >
                   <LogOut className="h-4 w-4" />
                   Sign Out
                 </Button>

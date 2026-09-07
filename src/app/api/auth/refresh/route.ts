@@ -4,8 +4,8 @@ import {
   verifyRefreshToken,
   signAccessToken,
   signRefreshToken,
-  setAccessTokenCookie,
-  setRefreshTokenCookie,
+  buildAuthCookies,
+  applySetCookieHeaders,
 } from "@/lib/auth";
 import { requireDatabase, apiError, apiSuccess } from "@/lib/api";
 import { rateLimit, getRateLimitKey } from "@/lib/rate-limit";
@@ -59,15 +59,16 @@ export async function POST(request: Request) {
     });
     const newRefreshToken = await signRefreshToken(user.id);
 
-    const response = apiSuccess({ accessToken });
+    const response = apiSuccess({
+      userId: user.id,
+      role: user.role,
+    });
 
-    // Rotate cookies: new access token + new refresh token
-    let newCookies = setAccessTokenCookie(
-      response.headers.get("set-cookie") || "",
-      accessToken,
+    // Rotate cookies as separate Set-Cookie headers
+    applySetCookieHeaders(
+      response.headers,
+      buildAuthCookies(accessToken, newRefreshToken),
     );
-    newCookies = setRefreshTokenCookie(newCookies, newRefreshToken);
-    response.headers.set("set-cookie", newCookies);
 
     return response;
   } catch (error) {

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { User, Stethoscope } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +13,6 @@ import type { User as UserType } from "@/types";
 type UserRole = "PATIENT" | "DOCTOR";
 
 export default function RegisterPage() {
-  const router = useRouter();
   const dispatch = useAppDispatch();
 
   const [role, setRole] = useState<UserRole>("PATIENT");
@@ -117,7 +115,9 @@ export default function RegisterPage() {
           PATIENT: "/patient/dashboard",
           DOCTOR: "/doctor/dashboard",
         };
-        router.push(roleRoutes[userData.role] || "/patient/dashboard");
+        const target = roleRoutes[userData.role] || "/patient/dashboard";
+        window.location.assign(target);
+        return;
       }
     } catch {
       setServerError("An unexpected error occurred. Please try again.");
