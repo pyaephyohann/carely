@@ -29,8 +29,8 @@ import {
   useCancelPatientAppointmentMutation,
 } from "@/store/api/appointmentApi";
 import {
-  getStatusLabel,
   getStatusVariant,
+  getAppointmentDisplayLabel,
   getDurationMinutes,
   formatDuration,
 } from "@/lib/appointment-utils";
@@ -127,7 +127,7 @@ export default function AppointmentDetailPage() {
       >
         <Link
           href="/patient/appointments"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Appointments
@@ -153,7 +153,10 @@ export default function AppointmentDetailPage() {
             <div className="flex items-center justify-between gap-2">
               <h1 className="text-xl font-semibold text-foreground">Appointment Details</h1>
               <Badge variant={getStatusVariant(appointment.status)} size="md">
-                {getStatusLabel(appointment.status)}
+                {getAppointmentDisplayLabel(appointment.status, {
+                  cancelledBy: appointment.cancelledBy,
+                  cancelReason: appointment.cancelReason,
+                })}
               </Badge>
             </div>
           </CardHeader>
@@ -177,7 +180,7 @@ export default function AppointmentDetailPage() {
                 )}
                 <Link
                   href={`/patient/doctors/${appointment.doctor.id}`}
-                  className="text-sm text-violet-600 dark:text-violet-400 hover:underline"
+                  className="text-sm text-violet-600 dark:text-violet-400 hover:underline cursor-pointer"
                 >
                   View doctor profile
                 </Link>
@@ -292,7 +295,12 @@ export default function AppointmentDetailPage() {
             {appointment.status === "CANCELLED" && (
               <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800">
                 <p className="text-sm text-red-700 dark:text-red-300">
-                  <strong>Cancelled</strong>
+                  <strong>
+                    {getAppointmentDisplayLabel(appointment.status, {
+                      cancelledBy: appointment.cancelledBy,
+                      cancelReason: appointment.cancelReason,
+                    })}
+                  </strong>
                   {appointment.cancelledBy ? ` by ${appointment.cancelledBy.toLowerCase()}` : ""}
                   {appointment.cancelReason ? `: ${appointment.cancelReason}` : ""}
                 </p>

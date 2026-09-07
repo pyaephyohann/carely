@@ -39,11 +39,11 @@ export const doctorProfileSchema = z.object({
   firstName: z.string().min(1, "First name is required").max(50),
   lastName: z.string().min(1, "Last name is required").max(50),
   phone: z.string().optional(),
-  specialization: z.string().min(1, "Specialization is required"),
-  licenseNumber: z.string().min(1, "License number is required"),
+  specializationId: z.string().min(1, "Specialization is required").nullable().optional(),
+  licenseNumber: z.string().min(1, "License number is required").max(100),
   bio: z.string().max(500, "Bio must be 500 characters or less").optional(),
-  consultationFee: z.number().min(0, "Fee must be positive"),
-  yearsExperience: z.number().min(0).max(60).optional(),
+  consultationFee: z.coerce.number().min(0, "Fee must be positive"),
+  yearsExperience: z.coerce.number().min(0).max(60).nullable().optional(),
 });
 
 // Appointment Schemas

@@ -12,10 +12,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/features/patient/empty-state";
 import { Pagination } from "@/components/features/patient/pagination";
 import { useGetDoctorAppointmentsQuery, useUpdateAppointmentStatusMutation } from "@/store/api/appointmentApi";
-import { getStatusLabel, getStatusVariant, getValidTransitions } from "@/lib/appointment-utils";
+import { getStatusLabel, getStatusVariant, getValidTransitions, DOCTOR_REJECT_REASON } from "@/lib/appointment-utils";
 import { cn } from "@/utils/cn";
 
 const FILTERS = [
+  { value: "pending", label: "Pending" },
   { value: "today", label: "Today" },
   { value: "upcoming", label: "Upcoming" },
   { value: "past", label: "Past" },
@@ -25,7 +26,7 @@ const FILTERS = [
 type FilterValue = (typeof FILTERS)[number]["value"];
 
 export default function DoctorAppointmentsPage() {
-  const [filter, setFilter] = useState<FilterValue>("upcoming");
+  const [filter, setFilter] = useState<FilterValue>("pending");
   const [page, setPage] = useState(1);
   const [statusUpdateId, setStatusUpdateId] = useState<string | null>(null);
 
@@ -35,11 +36,17 @@ export default function DoctorAppointmentsPage() {
   const appointments = data?.data || [];
   const meta = data?.meta;
 
-  const handleStatusUpdate = async (appointmentId: string, status: string) => {
+  const handleStatusUpdate = async (
+    appointmentId: string,
+    status: string,
+    cancelReason?: string,
+  ) => {
+    setStatusUpdateId(appointmentId);
     try {
-      await updateStatus({ appointmentId, status }).unwrap();
-      setStatusUpdateId(null);
+      await updateStatus({ appointmentId, status, cancelReason }).unwrap();
     } catch {
+      // RTK Query surfaces the error; keep UI usable
+    } finally {
       setStatusUpdateId(null);
     }
   };
@@ -77,7 +84,7 @@ export default function DoctorAppointmentsPage() {
           ))}
         </div>
       ) : appointments.length === 0 ? (
-        <Card><CardContent className="p-8"><EmptyState icon={<Calendar className="h-8 w-8" />} title={filter === "today" ? "No appointments today" : "No appointments"} description={filter === "today" ? "You have no appointments scheduled for today." : "Your appointments will appear here."} /></CardContent></Card>
+        <Card><CardContent className="p-8"><EmptyState icon={<Calendar className="h-8 w-8" />} title={filter === "today" ? "No appointments today" : filter === "pending" ? "No pending requests" : "No appointments"} description={filter === "pending" ? "New patient booking requests will appear here for you to accept or decline." : filter === "today" ? "You have no appointments scheduled for today." : "Your appointments will appear here."} /></CardContent></Card>
       ) : (
         <>
           <div className="space-y-3">
@@ -115,19 +122,40 @@ export default function DoctorAppointmentsPage() {
                             <Link href={`/doctor/appointments/${appt.id}`}>
                               <Button variant="outline" size="sm">View Details</Button>
                             </Link>
-                            {validTransitions.includes("COMPLETED" as never) && (
+                            {validTransitions.includes("CONFIRMED") && (
+                              <Button
+                                size="sm"
+                                onClick={() => handleStatusUpdate(appt.id, "CONFIRMED")}
+                                isLoading={isUpdating && statusUpdateId === appt.id}
+                              >
+                                Accept
+                              </Button>
+                            )}
+                            {validTransitions.includes("COMPLETED") && (
                               <Button size="sm" onClick={() => handleStatusUpdate(appt.id, "COMPLETED")} isLoading={isUpdating && statusUpdateId === appt.id}>
                                 Mark Completed
                               </Button>
                             )}
-                            {validTransitions.includes("NO_SHOW" as never) && (
+                            {validTransitions.includes("NO_SHOW") && (
                               <Button variant="ghost" size="sm" onClick={() => handleStatusUpdate(appt.id, "NO_SHOW")} isLoading={isUpdating && statusUpdateId === appt.id}>
                                 No Show
                               </Button>
                             )}
-                            {validTransitions.includes("CANCELLED" as never) && (
-                              <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700" onClick={() => handleStatusUpdate(appt.id, "CANCELLED")} isLoading={isUpdating && statusUpdateId === appt.id}>
-                                Cancel
+                            {validTransitions.includes("CANCELLED") && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-600 hover:text-red-700"
+                                onClick={() =>
+                                  handleStatusUpdate(
+                                    appt.id,
+                                    "CANCELLED",
+                                    appt.status === "PENDING" ? DOCTOR_REJECT_REASON : undefined,
+                                  )
+                                }
+                                isLoading={isUpdating && statusUpdateId === appt.id}
+                              >
+                                {appt.status === "PENDING" ? "Reject" : "Cancel"}
                               </Button>
                             )}
                           </div>

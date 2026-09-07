@@ -26,7 +26,7 @@ import {
   useUpdateAppointmentStatusMutation,
   type DashboardAppointment,
 } from "@/store/api/appointmentApi";
-import { getStatusLabel, getStatusVariant, getValidTransitions } from "@/lib/appointment-utils";
+import { getStatusLabel, getStatusVariant, getValidTransitions, DOCTOR_REJECT_REASON } from "@/lib/appointment-utils";
 import { formatDate, formatDateTime, formatRelativeDate } from "@/utils/date";
 import { cn } from "@/utils/cn";
 
@@ -104,7 +104,7 @@ function AppointmentActions({
             onStatusUpdate(
               appointment.id,
               "CANCELLED",
-              appointment.status === "PENDING" ? "Rejected by doctor" : undefined,
+              appointment.status === "PENDING" ? DOCTOR_REJECT_REASON : undefined,
             )
           }
         >
@@ -217,7 +217,7 @@ export default function DoctorDashboard() {
 
   const dashboard = data?.data;
   const doctorName = dashboard
-    ? `Dr. ${dashboard.doctor.firstName}`
+    ? `Dr. ${dashboard.doctor.firstName} ${dashboard.doctor.lastName}`
     : "Doctor";
 
   const handleStatusUpdate = async (
@@ -269,8 +269,8 @@ export default function DoctorDashboard() {
         transition={{ duration: 0.3 }}
         className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3"
       >
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+        <div className="min-w-0">
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground break-words">
             {greeting()}, {isLoading ? "…" : doctorName}
           </h1>
           <p className="text-muted-foreground mt-1">

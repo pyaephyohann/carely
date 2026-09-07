@@ -25,7 +25,7 @@ import {
   useCancelPatientAppointmentMutation,
   type AppointmentListItem,
 } from "@/store/api/appointmentApi";
-import { getStatusLabel, getStatusVariant } from "@/lib/appointment-utils";
+import { getStatusVariant, getAppointmentDisplayLabel } from "@/lib/appointment-utils";
 import { formatRelativeDate } from "@/utils/date";
 import { cn } from "@/utils/cn";
 
@@ -58,7 +58,7 @@ const EMPTY_COPY: Record<
   },
   cancelled: {
     title: "No cancelled appointments",
-    description: "Cancelled appointments will appear here for your records.",
+    description: "Cancelled or declined appointments will appear here for your records.",
   },
 };
 
@@ -115,7 +115,10 @@ function AppointmentCard({
                 )}
               </div>
               <Badge variant={getStatusVariant(appointment.status)}>
-                {getStatusLabel(appointment.status)}
+                {getAppointmentDisplayLabel(appointment.status, {
+                  cancelledBy: appointment.cancelledBy,
+                  cancelReason: appointment.cancelReason,
+                })}
               </Badge>
             </div>
 
@@ -290,7 +293,10 @@ export default function AppointmentsPage() {
                         {nextAppointment.doctor.lastName}
                       </p>
                       <Badge variant={getStatusVariant(nextAppointment.status)}>
-                        {getStatusLabel(nextAppointment.status)}
+                        {getAppointmentDisplayLabel(nextAppointment.status, {
+                          cancelledBy: nextAppointment.cancelledBy,
+                          cancelReason: nextAppointment.cancelReason,
+                        })}
                       </Badge>
                     </div>
                     {nextAppointment.doctor.specialization && (
@@ -356,7 +362,7 @@ export default function AppointmentsPage() {
               setCancelError(null);
             }}
             className={cn(
-              "px-4 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap",
+              "px-4 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap cursor-pointer",
               filter === f.value
                 ? "bg-background text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground",

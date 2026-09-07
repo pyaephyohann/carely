@@ -4,7 +4,6 @@ import { requireDatabase, apiSuccess, apiError } from "@/lib/api";
 import { requirePatient } from "@/lib/auth-helpers";
 import { generateAvailableSlots } from "@/lib/scheduling";
 import { onAppointmentBooked } from "@/lib/notifications/events";
-import { scheduleAppointmentReminders } from "@/lib/notifications/reminder-service";
 import { Prisma } from "@prisma/client";
 import { logError } from "@/lib/logger";
 
@@ -27,6 +26,7 @@ export async function POST(request: NextRequest) {
     return apiError("Invalid request body", "INVALID_BODY", 400);
   }
 
+  // Intentionally ignore any client-supplied status — initial status is always PENDING.
   const { doctorId, date, startTime, type, reason } = body as {
     doctorId?: string;
     date?: string;
@@ -151,14 +151,14 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // 5. Create the appointment
+      // 5. Create as PENDING — doctor must accept before CONFIRMED
       const appointment = await tx.appointment.create({
         data: {
           patientId: patient.id,
           doctorId: doctor.id,
           startTime: new Date(matchingSlot.startTime),
           endTime: new Date(matchingSlot.endTime),
-          status: "CONFIRMED",
+          status: "PENDING",
           type: (type as "IN_PERSON" | "VIRTUAL") || "IN_PERSON",
           reason: reason || null,
         },
@@ -198,15 +198,7 @@ export async function POST(request: NextRequest) {
         time: timeStr,
         type: result.type || "IN_PERSON",
       }).catch(() => {});
-
-      // Schedule reminders (fire-and-forget)
-      scheduleAppointmentReminders({
-        appointmentId: result.id,
-        patientUserId: auth.user.userId,
-        doctorName: `${doctorData.firstName} ${doctorData.lastName}`,
-        patientName: `${patientData.firstName} ${patientData.lastName}`,
-        appointmentTime: result.startTime,
-      }).catch(() => {});
+      // Reminders are scheduled only after the doctor confirms (PENDING → CONFIRMED).
     }
 
     return apiSuccess({

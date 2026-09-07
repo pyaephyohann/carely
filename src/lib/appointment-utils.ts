@@ -1,20 +1,23 @@
 /**
  * Appointment status transition rules and validation.
  *
- * Allowed transitions:
- *   PENDING   → CONFIRMED, CANCELLED
+ * Lifecycle:
+ *   CREATE    → PENDING (server-enforced)
+ *   PENDING   → CONFIRMED, CANCELLED (doctor reject uses CANCELLED — no REJECTED enum)
  *   CONFIRMED → COMPLETED, CANCELLED, NO_SHOW
+ *   IN_PROGRESS → COMPLETED, CANCELLED
  *
  * Invalid transitions are rejected server-side.
  */
-
-
 
 // =============================================================================
 // Status Transition Rules
 // =============================================================================
 
 type AppointmentStatus = "PENDING" | "CONFIRMED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "NO_SHOW";
+
+/** Standard cancelReason when a doctor declines a PENDING request */
+export const DOCTOR_REJECT_REASON = "Rejected by doctor";
 
 const VALID_TRANSITIONS: Record<string, AppointmentStatus[]> = {
   PENDING: ["CONFIRMED", "CANCELLED"],
@@ -51,6 +54,25 @@ export function getStatusLabel(status: string): string {
     NO_SHOW: "No Show",
   };
   return labels[status] || status;
+}
+
+/**
+ * Patient/doctor-facing label that maps doctor rejection (CANCELLED + reason) to "Declined".
+ * Schema has no REJECTED enum — decline is CANCELLED with cancelledBy DOCTOR.
+ */
+export function getAppointmentDisplayLabel(
+  status: string,
+  opts?: { cancelledBy?: string | null; cancelReason?: string | null },
+): string {
+  if (
+    status === "CANCELLED" &&
+    opts?.cancelledBy === "DOCTOR" &&
+    (opts.cancelReason === DOCTOR_REJECT_REASON ||
+      (opts.cancelReason ?? "").toLowerCase().includes("reject"))
+  ) {
+    return "Declined";
+  }
+  return getStatusLabel(status);
 }
 
 /**

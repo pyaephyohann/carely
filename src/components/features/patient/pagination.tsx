@@ -66,7 +66,7 @@ export function Pagination({ page, totalPages, onPageChange }: PaginationProps) 
             key={pageNum}
             onClick={() => onPageChange(pageNum)}
             className={cn(
-              "min-w-[36px] h-9 px-3 text-sm font-medium rounded-lg transition-colors",
+              "min-w-[36px] h-9 px-3 text-sm font-medium rounded-lg transition-colors cursor-pointer",
               pageNum === page
                 ? "bg-violet-600 text-white"
                 : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800",

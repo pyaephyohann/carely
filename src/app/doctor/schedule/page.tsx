@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Link from "next/link";
 import { Calendar, Plus, Trash2, CheckCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -115,7 +116,18 @@ export default function DoctorSchedulePage() {
     <div className="max-w-4xl mx-auto space-y-8">
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
         <h1 className="text-2xl md:text-3xl font-bold text-foreground">My Schedule</h1>
-        <p className="text-muted-foreground mt-1">Manage your working hours and availability exceptions</p>
+        <p className="text-muted-foreground mt-1">
+          Manage your working hours and availability exceptions. Pending booking requests and
+          confirmed visits appear on your{" "}
+          <Link href="/doctor/dashboard" className="text-violet-600 dark:text-violet-400 hover:underline">
+            Dashboard
+          </Link>{" "}
+          and{" "}
+          <Link href="/doctor/appointments" className="text-violet-600 dark:text-violet-400 hover:underline">
+            Appointments
+          </Link>
+          .
+        </p>
       </motion.div>
 
       {/* Weekly Schedule */}

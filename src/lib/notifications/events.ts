@@ -72,15 +72,15 @@ export async function onAppointmentBooked(payload: AppointmentBookedPayload): Pr
     {
       userId: payload.patientUserId,
       type: "APPOINTMENT_BOOKED",
-      title: "Appointment Booked",
-      message: `Your appointment with Dr. ${payload.doctorName} has been booked for ${dateStr} at ${timeStr}.`,
+      title: "Appointment Requested",
+      message: `Your appointment request with Dr. ${payload.doctorName} for ${dateStr} at ${timeStr} is pending confirmation.`,
       link: `/patient/appointments`,
       metadata: { appointmentId: payload.appointmentId },
     },
     (await hasNotificationEnabled(payload.patientUserId, "appointmentUpdates"))
       ? {
           to: (await getUserEmail(payload.patientUserId)) || "",
-          subject: "Appointment Booked - Carely",
+          subject: "Appointment Requested - Carely",
           html: appointmentBookedEmail({
             patientName: payload.patientName,
             doctorName: payload.doctorName,
@@ -98,22 +98,22 @@ export async function onAppointmentBooked(payload: AppointmentBookedPayload): Pr
     {
       userId: payload.doctorUserId,
       type: "APPOINTMENT_BOOKED",
-      title: "New Appointment",
-      message: `${payload.patientName} has booked an appointment for ${dateStr} at ${timeStr}.`,
-      link: `/doctor/appointments`,
+      title: "New Appointment Request",
+      message: `${payload.patientName} requested an appointment for ${dateStr} at ${timeStr}. Please accept or decline.`,
+      link: `/doctor/dashboard`,
       metadata: { appointmentId: payload.appointmentId },
     },
     (await hasNotificationEnabled(payload.doctorUserId, "appointmentUpdates"))
       ? {
           to: (await getUserEmail(payload.doctorUserId)) || "",
-          subject: "New Appointment Booked - Carely",
+          subject: "New Appointment Request - Carely",
           html: appointmentBookedEmail({
             patientName: payload.patientName,
             doctorName: payload.doctorName,
             date: dateStr,
             time: timeStr,
             type: payload.type,
-          }).replace("Your appointment has been successfully booked.", `A patient has booked an appointment with you.`),
+          }).replace("Your appointment has been successfully booked.", `A patient has requested an appointment with you.`),
           type: "APPOINTMENT_BOOKED",
         }
       : undefined,

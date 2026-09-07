@@ -64,9 +64,15 @@ export interface Admin {
 }
 
 // Appointment Types
-export type AppointmentStatus = "SCHEDULED" | "CONFIRMED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "NO_SHOW";
+export type AppointmentStatus =
+  | "PENDING"
+  | "CONFIRMED"
+  | "IN_PROGRESS"
+  | "COMPLETED"
+  | "CANCELLED"
+  | "NO_SHOW";
 
-export type AppointmentType = "CONSULTATION" | "FOLLOW_UP" | "EMERGENCY" | "VIRTUAL";
+export type AppointmentType = "IN_PERSON" | "VIRTUAL";
 
 export interface Appointment {
   id: string;

@@ -326,7 +326,7 @@ model Appointment {
   doctorId     String
   startTime    DateTime // UTC timestamp
   endTime      DateTime // UTC timestamp
-  status       AppointmentStatus @default(CONFIRMED)
+  status       AppointmentStatus @default(PENDING)
   type         AppointmentType   @default(IN_PERSON)
   reason       String?
   notes        String?

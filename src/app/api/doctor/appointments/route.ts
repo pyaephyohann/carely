@@ -38,17 +38,20 @@ export async function GET(request: NextRequest) {
   };
 
   switch (filter) {
+    case "pending":
+      where.status = "PENDING";
+      break;
     case "today":
       const todayStart = new Date(now);
       todayStart.setUTCHours(0, 0, 0, 0);
       const todayEnd = new Date(now);
       todayEnd.setUTCHours(23, 59, 59, 999);
       where.startTime = { gte: todayStart, lte: todayEnd };
-      where.status = { in: ["PENDING", "CONFIRMED"] };
+      where.status = { in: ["PENDING", "CONFIRMED", "IN_PROGRESS"] };
       break;
     case "upcoming":
       where.startTime = { gte: now };
-      where.status = { in: ["PENDING", "CONFIRMED"] };
+      where.status = { in: ["PENDING", "CONFIRMED", "IN_PROGRESS"] };
       break;
     case "past":
       where.OR = [

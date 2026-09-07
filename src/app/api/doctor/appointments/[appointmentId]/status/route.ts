@@ -2,12 +2,16 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireDatabase, apiSuccess, apiError } from "@/lib/api";
 import { requireDoctor } from "@/lib/auth-helpers";
-import { isValidTransition } from "@/lib/appointment-utils";
+import { isValidTransition, DOCTOR_REJECT_REASON } from "@/lib/appointment-utils";
 import { onAppointmentConfirmed, onAppointmentCancelled } from "@/lib/notifications/events";
-import { cancelAppointmentReminders } from "@/lib/notifications/reminder-service";
+import {
+  cancelAppointmentReminders,
+  scheduleAppointmentReminders,
+} from "@/lib/notifications/reminder-service";
 
 // =============================================================================
 // PATCH /api/doctor/appointments/[appointmentId]/status — Update appointment status
+// Doctor identity from session; transitions enforced server-side.
 // =============================================================================
 
 export async function PATCH(
@@ -22,7 +26,6 @@ export async function PATCH(
 
   const { appointmentId } = await params;
 
-  // Parse body
   let body: unknown;
   try {
     body = await request.json();
@@ -49,17 +52,15 @@ export async function PATCH(
     );
   }
 
-  // Find doctor profile
   const doctor = await prisma!.doctor.findFirst({
     where: { userId: auth.user.userId },
-    select: { id: true },
+    select: { id: true, firstName: true, lastName: true },
   });
 
   if (!doctor) {
     return apiError("Doctor profile not found", "NOT_FOUND", 404);
   }
 
-  // Find the appointment
   const appointment = await prisma!.appointment.findFirst({
     where: {
       id: appointmentId,
@@ -68,6 +69,14 @@ export async function PATCH(
     select: {
       id: true,
       status: true,
+      startTime: true,
+      patient: {
+        select: {
+          userId: true,
+          firstName: true,
+          lastName: true,
+        },
+      },
     },
   });
 
@@ -75,7 +84,6 @@ export async function PATCH(
     return apiError("Appointment not found", "NOT_FOUND", 404);
   }
 
-  // Validate status transition
   if (!isValidTransition(appointment.status, status)) {
     return apiError(
       `Cannot transition from "${appointment.status}" to "${status}".`,
@@ -84,11 +92,12 @@ export async function PATCH(
     );
   }
 
-  // Build update data
   const updateData: Record<string, unknown> = { status };
 
   if (status === "CANCELLED") {
-    updateData.cancelReason = cancelReason || null;
+    const isReject = appointment.status === "PENDING";
+    updateData.cancelReason =
+      cancelReason || (isReject ? DOCTOR_REJECT_REASON : null);
     updateData.cancelledBy = "DOCTOR";
     updateData.cancelledAt = new Date();
   }
@@ -97,10 +106,26 @@ export async function PATCH(
     updateData.notes = notes;
   }
 
-  // Update the appointment
-  const updated = await prisma!.appointment.update({
-    where: { id: appointment.id },
+  // Atomic conditional update — prevents race overwrites if status already changed
+  const updateResult = await prisma!.appointment.updateMany({
+    where: {
+      id: appointment.id,
+      doctorId: doctor.id,
+      status: appointment.status,
+    },
     data: updateData,
+  });
+
+  if (updateResult.count === 0) {
+    return apiError(
+      "Appointment status was already changed. Please refresh and try again.",
+      "CONFLICT",
+      409,
+    );
+  }
+
+  const updated = await prisma!.appointment.findUnique({
+    where: { id: appointment.id },
     select: {
       id: true,
       status: true,
@@ -109,47 +134,53 @@ export async function PATCH(
       cancelledBy: true,
       cancelledAt: true,
       updatedAt: true,
+      startTime: true,
     },
   });
 
-  // Dispatch notifications (fire-and-forget)
-  if (status === "CONFIRMED" || status === "CANCELLED") {
-    const fullAppt = await prisma!.appointment.findUnique({
-      where: { id: appointment.id },
-      include: {
-        patient: { select: { userId: true, firstName: true, lastName: true } },
-        doctor: { select: { firstName: true, lastName: true } },
-      },
-    });
+  if (!updated) {
+    return apiError("Appointment not found after update", "NOT_FOUND", 404);
+  }
 
-    if (fullAppt) {
-      const dateStr = fullAppt.startTime.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
-      const timeStr = fullAppt.startTime.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  const dateStr = updated.startTime.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+  const timeStr = updated.startTime.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+  const doctorName = `${doctor.firstName} ${doctor.lastName}`;
+  const patientName = `${appointment.patient.firstName} ${appointment.patient.lastName}`;
 
-      // Cancel any pending reminders for cancelled appointments
-      if (status === "CANCELLED") {
-        cancelAppointmentReminders(fullAppt.id).catch(() => {});
-      }
+  if (status === "CONFIRMED") {
+    onAppointmentConfirmed({
+      appointmentId: updated.id,
+      patientUserId: appointment.patient.userId,
+      doctorName,
+      date: dateStr,
+      time: timeStr,
+    }).catch(() => {});
 
-      if (status === "CONFIRMED") {
-        onAppointmentConfirmed({
-          appointmentId: fullAppt.id,
-          patientUserId: fullAppt.patient.userId,
-          doctorName: `${fullAppt.doctor.firstName} ${fullAppt.doctor.lastName}`,
-          date: dateStr,
-          time: timeStr,
-        }).catch(() => {});
-      } else if (status === "CANCELLED") {
-        onAppointmentCancelled({
-          appointmentId: fullAppt.id,
-          recipientUserId: fullAppt.patient.userId,
-          cancelledByName: `Dr. ${fullAppt.doctor.firstName} ${fullAppt.doctor.lastName}`,
-          date: dateStr,
-          time: timeStr,
-          reason: cancelReason || undefined,
-        }).catch(() => {});
-      }
-    }
+    scheduleAppointmentReminders({
+      appointmentId: updated.id,
+      patientUserId: appointment.patient.userId,
+      doctorName,
+      patientName,
+      appointmentTime: updated.startTime,
+    }).catch(() => {});
+  } else if (status === "CANCELLED") {
+    cancelAppointmentReminders(updated.id).catch(() => {});
+    onAppointmentCancelled({
+      appointmentId: updated.id,
+      recipientUserId: appointment.patient.userId,
+      cancelledByName: `Dr. ${doctorName}`,
+      date: dateStr,
+      time: timeStr,
+      reason: (updateData.cancelReason as string | null) || undefined,
+    }).catch(() => {});
   }
 
   return apiSuccess({

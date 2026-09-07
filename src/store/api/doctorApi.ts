@@ -59,6 +59,41 @@ export interface DoctorSearchParams {
   sortOrder?: string;
 }
 
+export interface DoctorProfile {
+  id: string;
+  userId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone: string | null;
+  avatar: string | null;
+  specializationId: string | null;
+  specialization: { id: string; name: string; slug: string } | null;
+  licenseNumber: string;
+  bio: string | null;
+  consultationFee: number;
+  yearsExperience: number | null;
+  timezone: string;
+  appointmentDuration: number;
+  verified: boolean;
+  verifiedAt: string | null;
+  role: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type UpdateDoctorProfileRequest = {
+  firstName: string;
+  lastName: string;
+  phone?: string;
+  specializationId?: string | null;
+  licenseNumber: string;
+  bio?: string;
+  consultationFee: number;
+  yearsExperience?: number | null;
+};
+
 // =============================================================================
 // Doctor API
 // =============================================================================
@@ -88,6 +123,21 @@ export const doctorApi = baseApi.injectEndpoints({
     getSpecializations: builder.query<ApiResponse<Specialization[]>, void>({
       query: () => "/specializations",
     }),
+    getDoctorProfile: builder.query<ApiResponse<DoctorProfile>, void>({
+      query: () => "/doctor/profile",
+      providesTags: ["Doctor"],
+    }),
+    updateDoctorProfile: builder.mutation<
+      ApiResponse<DoctorProfile>,
+      UpdateDoctorProfileRequest
+    >({
+      query: (data) => ({
+        url: "/doctor/profile",
+        method: "PATCH",
+        body: data,
+      }),
+      invalidatesTags: ["Doctor", "User"],
+    }),
   }),
 });
 
@@ -95,4 +145,6 @@ export const {
   useGetDoctorsQuery,
   useGetDoctorByIdQuery,
   useGetSpecializationsQuery,
+  useGetDoctorProfileQuery,
+  useUpdateDoctorProfileMutation,
 } = doctorApi;

@@ -27,7 +27,7 @@ import {
   useGetDoctorAppointmentDetailQuery,
   useUpdateAppointmentStatusMutation,
 } from "@/store/api/appointmentApi";
-import { getStatusLabel, getStatusVariant, getValidTransitions, getDurationMinutes, formatDuration } from "@/lib/appointment-utils";
+import { getStatusLabel, getStatusVariant, getValidTransitions, getDurationMinutes, formatDuration, DOCTOR_REJECT_REASON } from "@/lib/appointment-utils";
 
 export default function DoctorAppointmentDetailPage() {
   const params = useParams();
@@ -67,11 +67,9 @@ export default function DoctorAppointmentDetailPage() {
   const duration = getDurationMinutes(appointment.startTime, appointment.endTime);
   const validTransitions = getValidTransitions(appointment.status);
 
-  const handleStatusUpdate = async (status: string) => {
+  const handleStatusUpdate = async (status: string, cancelReason?: string) => {
     try {
-      await updateStatus({ appointmentId: appointment.id, status }).unwrap();
-      // Refetch detail
-      router.refresh();
+      await updateStatus({ appointmentId: appointment.id, status, cancelReason }).unwrap();
     } catch {
       // Error handled by RTK Query
     }
@@ -163,7 +161,12 @@ export default function DoctorAppointmentDetailPage() {
             {validTransitions.length > 0 && (
               <div className="border-t border-border pt-4">
                 <div className="flex flex-wrap gap-2">
-                  {validTransitions.includes("COMPLETED" as never) && (
+                  {validTransitions.includes("CONFIRMED") && (
+                    <Button onClick={() => handleStatusUpdate("CONFIRMED")} isLoading={isUpdating}>
+                      Accept Request
+                    </Button>
+                  )}
+                  {validTransitions.includes("COMPLETED") && (
                     <Button
                       onClick={() => setShowConsultation(!showConsultation)}
                       isLoading={isUpdating}
@@ -172,26 +175,41 @@ export default function DoctorAppointmentDetailPage() {
                       {showConsultation ? "Hide Consultation" : "Start Consultation"}
                     </Button>
                   )}
-                  {validTransitions.includes("NO_SHOW" as never) && (
+                  {validTransitions.includes("NO_SHOW") && (
                     <Button variant="outline" onClick={() => handleStatusUpdate("NO_SHOW")} isLoading={isUpdating}>
                       Mark No Show
                     </Button>
                   )}
-                  {validTransitions.includes("CANCELLED" as never) && (
-                    <Button variant="danger" onClick={() => handleStatusUpdate("CANCELLED")} isLoading={isUpdating}>
-                      Cancel Appointment
+                  {validTransitions.includes("CANCELLED") && (
+                    <Button
+                      variant="danger"
+                      onClick={() =>
+                        handleStatusUpdate(
+                          "CANCELLED",
+                          appointment.status === "PENDING" ? DOCTOR_REJECT_REASON : undefined,
+                        )
+                      }
+                      isLoading={isUpdating}
+                    >
+                      {appointment.status === "PENDING" ? "Reject Request" : "Cancel Appointment"}
                     </Button>
                   )}
                 </div>
               </div>
             )}
 
-            {/* Cancel info */}
-            {appointment.cancelReason && (
+            {/* Cancel / decline info */}
+            {appointment.status === "CANCELLED" && (
               <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800">
                 <p className="text-sm text-red-700 dark:text-red-300">
-                  <strong>Cancelled</strong> by {appointment.cancelledBy || "unknown"}
-                  {`: ${appointment.cancelReason}`}
+                  <strong>
+                    {appointment.cancelReason === DOCTOR_REJECT_REASON ||
+                    (appointment.cancelReason ?? "").toLowerCase().includes("reject")
+                      ? "Declined"
+                      : "Cancelled"}
+                  </strong>
+                  {appointment.cancelledBy ? ` by ${appointment.cancelledBy.toLowerCase()}` : ""}
+                  {appointment.cancelReason ? `: ${appointment.cancelReason}` : ""}
                 </p>
               </div>
             )}
