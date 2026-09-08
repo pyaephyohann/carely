@@ -10,6 +10,7 @@ import {
   X,
   Stethoscope,
   BadgeCheck,
+  Palette,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -28,6 +29,7 @@ import {
 import { doctorProfileSchema } from "@/lib/validation";
 import type { DoctorProfileInput } from "@/lib/validation";
 import { cn } from "@/utils/cn";
+import { ThemePreferenceSelector } from "@/components/theme";
 
 function profileToFormData(profile: DoctorProfile): DoctorProfileInput {
   return {
@@ -429,6 +431,31 @@ export default function DoctorProfilePage() {
                 </div>
               </div>
             )}
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
+      >
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-violet-100 dark:bg-violet-950 flex items-center justify-center text-violet-600 dark:text-violet-400">
+                <Palette className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="font-semibold text-foreground">Appearance</h2>
+                <p className="text-sm text-muted-foreground">
+                  Choose how Carely looks on your device
+                </p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <ThemePreferenceSelector />
           </CardContent>
         </Card>
       </motion.div>

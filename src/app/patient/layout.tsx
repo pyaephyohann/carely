@@ -23,6 +23,7 @@ import { selectCurrentUser, selectIsLoading } from "@/store/slices/authSlice";
 import { useLogout } from "@/hooks/useLogout";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { ThemeSwitcher } from "@/components/theme";
 import { cn } from "@/utils/cn";
 
 const navItems: {
@@ -173,6 +174,9 @@ export default function PatientLayout({
               />
             </button>
           </div>
+          <div className={cn("mb-2", collapsed ? "flex justify-center" : "")}>
+            <ThemeSwitcher />
+          </div>
           <Button
             variant="ghost"
             className={cn(
@@ -299,7 +303,10 @@ export default function PatientLayout({
               <span className="font-bold text-foreground text-sm">Carely</span>
             </Link>
           </div>
-          <NotificationCenter />
+          <div className="flex items-center gap-1">
+            <ThemeSwitcher />
+            <NotificationCenter />
+          </div>
         </div>
 
         {/* Page Content */}

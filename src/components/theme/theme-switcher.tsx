@@ -68,8 +68,7 @@ export function ThemeSwitcher({ className }: { className?: string }) {
             transition={{ duration: 0.15 }}
             className={cn(
               "absolute right-0 mt-2 w-40 rounded-xl shadow-lg border z-50 overflow-hidden",
-              "bg-white border-zinc-200",
-              "dark:bg-zinc-900 dark:border-zinc-800"
+              "bg-card border-border"
             )}
             role="listbox"
             aria-label="Select theme"
@@ -90,7 +89,7 @@ export function ThemeSwitcher({ className }: { className?: string }) {
                     "w-full flex items-center gap-3 px-3 py-2.5 text-sm transition-colors text-left cursor-pointer",
                     isActive
                       ? "bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-300"
-                      : "text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                      : "text-foreground hover:bg-muted"
                   )}
                 >
                   <Icon className="h-4 w-4 shrink-0" />

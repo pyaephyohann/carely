@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { User, Save, CheckCircle, AlertCircle } from "lucide-react";
+import { User, Save, CheckCircle, AlertCircle, Palette } from "lucide-react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import {
 } from "@/store/api/patientApi";
 import { patientProfileSchema } from "@/lib/validation";
 import type { PatientProfileInput } from "@/lib/validation";
+import { ThemePreferenceSelector } from "@/components/theme";
 
 const GENDER_OPTIONS = [
   { value: "MALE", label: "Male" },
@@ -280,6 +281,31 @@ export default function ProfilePage() {
                 )}
               </div>
             </form>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.15 }}
+      >
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-violet-100 dark:bg-violet-950 flex items-center justify-center text-violet-600 dark:text-violet-400">
+                <Palette className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="font-semibold text-foreground">Appearance</h2>
+                <p className="text-sm text-muted-foreground">
+                  Choose how Carely looks on your device
+                </p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <ThemePreferenceSelector />
           </CardContent>
         </Card>
       </motion.div>

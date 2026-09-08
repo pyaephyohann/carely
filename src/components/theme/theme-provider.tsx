@@ -4,6 +4,7 @@ import {
   createContext,
   useContext,
   useCallback,
+  useEffect,
   useSyncExternalStore,
   type ReactNode,
 } from "react";
@@ -26,6 +27,15 @@ interface ThemeContextValue {
 
 const STORAGE_KEY = "carely-theme";
 
+export { STORAGE_KEY };
+
+export function resolveThemePreference(
+  theme: Theme,
+  systemTheme: "light" | "dark" = "light",
+): "light" | "dark" {
+  return theme === "system" ? systemTheme : theme;
+}
+
 function getSystemTheme(): "light" | "dark" {
   if (typeof window === "undefined") return "light";
   return window.matchMedia("(prefers-color-scheme: dark)").matches
@@ -47,13 +57,14 @@ function getStoredTheme(): Theme {
 }
 
 function resolveTheme(theme: Theme): "light" | "dark" {
-  return theme === "system" ? getSystemTheme() : theme;
+  return resolveThemePreference(theme, getSystemTheme());
 }
 
 function applyTheme(resolved: "light" | "dark") {
   const root = document.documentElement;
   root.classList.remove("light", "dark");
   root.classList.add(resolved);
+  root.style.colorScheme = resolved;
 }
 
 // useSyncExternalStore for SSR-safe, synchronous reads from localStorage.
@@ -110,11 +121,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const theme = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const resolvedTheme = resolveTheme(theme);
 
-  // Apply dark/light class whenever theme changes
-  // This runs after render, which is safe — the inline <script> handles the flash
-  if (typeof window !== "undefined") {
+  useEffect(() => {
     applyTheme(resolvedTheme);
-  }
+  }, [resolvedTheme]);
 
   const setTheme = useCallback((newTheme: Theme) => {
     try {
@@ -146,11 +155,14 @@ export function ThemeInitScript() {
   const script = `
     (function() {
       try {
-        var theme = localStorage.getItem('carely-theme') || 'system';
+        var theme = localStorage.getItem('${STORAGE_KEY}') || 'system';
         var resolved = theme === 'system'
           ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
           : theme;
-        document.documentElement.classList.add(resolved);
+        var root = document.documentElement;
+        root.classList.remove('light', 'dark');
+        root.classList.add(resolved);
+        root.style.colorScheme = resolved;
       } catch (e) {}
     })();
   `;

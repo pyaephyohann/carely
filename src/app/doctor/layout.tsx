@@ -24,6 +24,7 @@ import { selectCurrentUser, selectIsLoading } from "@/store/slices/authSlice";
 import { useLogout } from "@/hooks/useLogout";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { ThemeSwitcher } from "@/components/theme";
 import { cn } from "@/utils/cn";
 
 const navItems = [
@@ -142,6 +143,9 @@ export default function DoctorLayout({
               <ChevronLeft className={cn("h-4 w-4 transition-transform", collapsed && "rotate-180")} />
             </button>
           </div>
+          <div className={cn("mb-2", collapsed ? "flex justify-center" : "")}>
+            <ThemeSwitcher />
+          </div>
           <Button
             variant="ghost"
             className={cn(
@@ -241,7 +245,10 @@ export default function DoctorLayout({
             <div className="w-6 h-6 bg-violet-600 rounded-md flex items-center justify-center"><Heart className="h-3.5 w-3.5 text-white" fill="currentColor" /></div>
             <span className="font-bold text-foreground text-sm">Carely</span>
           </Link>
-          <NotificationCenter />
+          <div className="flex items-center gap-1">
+            <ThemeSwitcher />
+            <NotificationCenter />
+          </div>
         </div>
         <main className="flex-1 p-4 md:p-8">{children}</main>
       </div>
