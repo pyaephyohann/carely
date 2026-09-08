@@ -4,6 +4,10 @@ import { prisma } from "@/lib/prisma";
 import { requireDoctor } from "@/lib/auth-helpers";
 import { requireDatabase, apiError, apiSuccess } from "@/lib/api";
 import { prescriptionUpdateSchema } from "@/lib/validation";
+import {
+  buildPrescriptionItemCreateData,
+  mapPrescriptionItemResponse,
+} from "@/lib/prescription-item-utils";
 
 // =============================================================================
 // GET /api/doctor/prescriptions/[prescriptionId]
@@ -89,17 +93,7 @@ export async function GET(
         notes: prescription.consultation.notes,
         createdAt: prescription.consultation.createdAt.toISOString(),
       },
-      items: prescription.items.map((item) => ({
-        id: item.id,
-        medicineId: item.medicineId,
-        medicineName: item.medicine.name,
-        medicineGenericName: item.medicine.genericName,
-        medicineCategory: item.medicine.category,
-        dosage: item.dosage,
-        frequency: item.frequency,
-        duration: item.duration,
-        instructions: item.instructions,
-      })),
+      items: prescription.items.map((item) => mapPrescriptionItemResponse(item)),
     });
   } catch (error) {
     logError("Error fetching prescription:", error);
@@ -167,20 +161,22 @@ export async function PATCH(
 
     // If new items provided, validate medicine IDs
     if (items && items.length > 0) {
-      const medicineIds = items.map((i) => i.medicineId);
-      const validMedicines = await prisma!.medicine.findMany({
-        where: { id: { in: medicineIds }, active: true },
-        select: { id: true },
-      });
+      const medicineIds = items.map((i) => i.medicineId).filter(Boolean) as string[];
+      if (medicineIds.length > 0) {
+        const validMedicines = await prisma!.medicine.findMany({
+          where: { id: { in: medicineIds }, active: true },
+          select: { id: true },
+        });
 
-      if (validMedicines.length !== medicineIds.length) {
-        const foundIds = new Set(validMedicines.map((m) => m.id));
-        const invalidIds = medicineIds.filter((id) => !foundIds.has(id));
-        return apiError(
-          `Invalid or inactive medicine(s): ${invalidIds.join(", ")}`,
-          "VALIDATION_ERROR",
-          400,
-        );
+        if (validMedicines.length !== medicineIds.length) {
+          const foundIds = new Set(validMedicines.map((m) => m.id));
+          const invalidIds = medicineIds.filter((id) => !foundIds.has(id));
+          return apiError(
+            `Invalid or inactive medicine catalog reference(s): ${invalidIds.join(", ")}`,
+            "VALIDATION_ERROR",
+            400,
+          );
+        }
       }
     }
 
@@ -209,11 +205,7 @@ export async function PATCH(
         await tx.prescriptionItem.createMany({
           data: items.map((item) => ({
             prescriptionId,
-            medicineId: item.medicineId,
-            dosage: item.dosage,
-            frequency: item.frequency,
-            duration: item.duration,
-            instructions: item.instructions || null,
+            ...buildPrescriptionItemCreateData(item),
           })),
         });
       }
@@ -240,16 +232,7 @@ export async function PATCH(
       validUntil: result!.validUntil?.toISOString() || null,
       createdAt: result!.createdAt.toISOString(),
       updatedAt: result!.updatedAt.toISOString(),
-      items: result!.items.map((item) => ({
-        id: item.id,
-        medicineId: item.medicineId,
-        medicineName: item.medicine.name,
-        medicineGenericName: item.medicine.genericName,
-        dosage: item.dosage,
-        frequency: item.frequency,
-        duration: item.duration,
-        instructions: item.instructions,
-      })),
+      items: result!.items.map((item) => mapPrescriptionItemResponse(item)),
     });
   } catch (error) {
     logError("Error updating prescription:", error);

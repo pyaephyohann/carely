@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireDatabase, apiSuccess, apiError } from "@/lib/api";
+import { mapPrescriptionItemResponse } from "@/lib/prescription-item-utils";
 import { requireDoctor } from "@/lib/auth-helpers";
 
 // =============================================================================
@@ -85,6 +86,8 @@ export async function GET(
                   frequency: true,
                   duration: true,
                   instructions: true,
+                  medicineName: true,
+                  medicineId: true,
                   medicine: {
                     select: {
                       id: true,
@@ -145,17 +148,7 @@ export async function GET(
             status: rx.status,
             validUntil: rx.validUntil?.toISOString() || null,
             createdAt: rx.createdAt.toISOString(),
-            items: rx.items.map((item) => ({
-              id: item.id,
-              medicineId: item.medicine.id,
-              medicineName: item.medicine.name,
-              medicineGenericName: item.medicine.genericName,
-              medicineCategory: item.medicine.category,
-              dosage: item.dosage,
-              frequency: item.frequency,
-              duration: item.duration,
-              instructions: item.instructions,
-            })),
+            items: rx.items.map((item) => mapPrescriptionItemResponse(item)),
           })),
         }
       : null,

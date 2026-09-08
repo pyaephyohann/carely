@@ -74,11 +74,16 @@ export const consultationUpdateSchema = z.object({
 
 // Prescription Schemas
 export const prescriptionItemSchema = z.object({
-  medicineId: z.string().min(1, "Medicine is required"),
-  dosage: z.string().min(1, "Dosage is required").max(200),
-  frequency: z.string().min(1, "Frequency is required").max(200),
-  duration: z.string().min(1, "Duration is required").max(200),
-  instructions: z.string().max(1000).optional(),
+  medicineName: z
+    .string()
+    .trim()
+    .min(1, "Medicine name is required")
+    .max(200, "Medicine name must be 200 characters or less"),
+  medicineId: z.string().min(1).optional(),
+  dosage: z.string().trim().min(1, "Dosage is required").max(200),
+  frequency: z.string().trim().min(1, "Frequency is required").max(200),
+  duration: z.string().trim().min(1, "Duration is required").max(200),
+  instructions: z.string().trim().max(1000).optional(),
 });
 
 export const prescriptionSchema = z.object({

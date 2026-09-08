@@ -3,6 +3,7 @@ import { logError } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { requirePatient } from "@/lib/auth-helpers";
 import { requireDatabase, apiError, apiSuccess } from "@/lib/api";
+import { mapPrescriptionItemResponse } from "@/lib/prescription-item-utils";
 
 // =============================================================================
 // GET /api/patient/prescriptions/[prescriptionId]
@@ -107,18 +108,7 @@ export async function GET(
               : null,
           }
         : null,
-      items: prescription.items.map((item) => ({
-        id: item.id,
-        medicineName: item.medicine.name,
-        medicineGenericName: item.medicine.genericName,
-        medicineCategory: item.medicine.category,
-        medicineDescription: item.medicine.description,
-        dosageForms: item.medicine.dosageForms,
-        dosage: item.dosage,
-        frequency: item.frequency,
-        duration: item.duration,
-        instructions: item.instructions,
-      })),
+      items: prescription.items.map((item) => mapPrescriptionItemResponse(item)),
     });
   } catch (error) {
     logError("Error fetching prescription:", error);

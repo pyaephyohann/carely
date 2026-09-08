@@ -6,6 +6,10 @@ import { requireDatabase, apiError, apiSuccess } from "@/lib/api";
 import { consultationCreateSchema, prescriptionSchema } from "@/lib/validation";
 import { onPrescriptionFinalized } from "@/lib/notifications/events";
 import { isClinicalAppointmentStatus } from "@/lib/prescription-service";
+import {
+  buildPrescriptionItemCreateData,
+  mapPrescriptionItemResponse,
+} from "@/lib/prescription-item-utils";
 
 // =============================================================================
 // POST /api/doctor/consultations
@@ -83,7 +87,8 @@ export async function POST(request: NextRequest) {
       notes?: string;
       validUntil?: Date;
       items: {
-        medicineId: string;
+        medicineName: string;
+        medicineId?: string;
         dosage: string;
         frequency: string;
         duration: string;
@@ -107,6 +112,7 @@ export async function POST(request: NextRequest) {
         ...rxFields,
         validUntil: rxFields.validUntil ? new Date(rxFields.validUntil) : undefined,
         items: items.map((item) => ({
+          medicineName: item.medicineName,
           medicineId: item.medicineId,
           dosage: item.dosage,
           frequency: item.frequency,
@@ -115,20 +121,22 @@ export async function POST(request: NextRequest) {
         })),
       };
 
-      const medicineIds = items.map((i) => i.medicineId);
-      const validMedicines = await prisma!.medicine.findMany({
-        where: { id: { in: medicineIds }, active: true },
-        select: { id: true },
-      });
+      const medicineIds = items.map((i) => i.medicineId).filter(Boolean) as string[];
+      if (medicineIds.length > 0) {
+        const validMedicines = await prisma!.medicine.findMany({
+          where: { id: { in: medicineIds }, active: true },
+          select: { id: true },
+        });
 
-      if (validMedicines.length !== medicineIds.length) {
-        const foundIds = new Set(validMedicines.map((m) => m.id));
-        const invalidIds = medicineIds.filter((id) => !foundIds.has(id));
-        return apiError(
-          `Invalid or inactive medicine(s): ${invalidIds.join(", ")}`,
-          "VALIDATION_ERROR",
-          400,
-        );
+        if (validMedicines.length !== medicineIds.length) {
+          const foundIds = new Set(validMedicines.map((m) => m.id));
+          const invalidIds = medicineIds.filter((id) => !foundIds.has(id));
+          return apiError(
+            `Invalid or inactive medicine catalog reference(s): ${invalidIds.join(", ")}`,
+            "VALIDATION_ERROR",
+            400,
+          );
+        }
       }
     }
 
@@ -156,7 +164,7 @@ export async function POST(request: NextRequest) {
             notes: prescriptionData.notes || null,
             status: "FINALIZED",
             validUntil: prescriptionData.validUntil,
-            items: { create: prescriptionData.items },
+            items: { create: prescriptionData.items.map((item) => buildPrescriptionItemCreateData(item)) },
           },
           include: {
             items: { include: { medicine: true } },
@@ -226,16 +234,7 @@ export async function POST(request: NextRequest) {
               status: result.prescription.status,
               validUntil: result.prescription.validUntil?.toISOString() || null,
               createdAt: result.prescription.createdAt.toISOString(),
-              items: result.prescription.items.map((item) => ({
-                id: item.id,
-                medicineId: item.medicineId,
-                medicineName: item.medicine.name,
-                medicineGenericName: item.medicine.genericName,
-                dosage: item.dosage,
-                frequency: item.frequency,
-                duration: item.duration,
-                instructions: item.instructions,
-              })),
+              items: result.prescription.items.map((item) => mapPrescriptionItemResponse(item)),
             }
           : null,
       },

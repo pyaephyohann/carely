@@ -6,6 +6,10 @@ import { requireDatabase, apiError, apiSuccess } from "@/lib/api";
 import { prescriptionCreateSchema } from "@/lib/validation";
 import { onPrescriptionFinalized } from "@/lib/notifications/events";
 import { ensureConsultationForAppointment } from "@/lib/prescription-service";
+import {
+  buildPrescriptionItemCreateData,
+  mapPrescriptionItemResponse,
+} from "@/lib/prescription-item-utils";
 
 // =============================================================================
 // POST /api/doctor/prescriptions
@@ -93,20 +97,22 @@ export async function POST(request: NextRequest) {
       patientId = consultation.patientId;
     }
 
-    const medicineIds = items.map((i) => i.medicineId);
-    const validMedicines = await prisma!.medicine.findMany({
-      where: { id: { in: medicineIds }, active: true },
-      select: { id: true },
-    });
+    const medicineIds = items.map((i) => i.medicineId).filter(Boolean) as string[];
+    if (medicineIds.length > 0) {
+      const validMedicines = await prisma!.medicine.findMany({
+        where: { id: { in: medicineIds }, active: true },
+        select: { id: true },
+      });
 
-    if (validMedicines.length !== medicineIds.length) {
-      const foundIds = new Set(validMedicines.map((m) => m.id));
-      const invalidIds = medicineIds.filter((id) => !foundIds.has(id));
-      return apiError(
-        `Invalid or inactive medicine(s): ${invalidIds.join(", ")}`,
-        "VALIDATION_ERROR",
-        400,
-      );
+      if (validMedicines.length !== medicineIds.length) {
+        const foundIds = new Set(validMedicines.map((m) => m.id));
+        const invalidIds = medicineIds.filter((id) => !foundIds.has(id));
+        return apiError(
+          `Invalid or inactive medicine catalog reference(s): ${invalidIds.join(", ")}`,
+          "VALIDATION_ERROR",
+          400,
+        );
+      }
     }
 
     const prescription = await prisma!.prescription.create({
@@ -119,13 +125,7 @@ export async function POST(request: NextRequest) {
         status: "FINALIZED",
         validUntil: validUntil ? new Date(validUntil) : null,
         items: {
-          create: items.map((item) => ({
-            medicineId: item.medicineId,
-            dosage: item.dosage,
-            frequency: item.frequency,
-            duration: item.duration,
-            instructions: item.instructions || null,
-          })),
+          create: items.map((item) => buildPrescriptionItemCreateData(item)),
         },
       },
       include: {
@@ -157,16 +157,7 @@ export async function POST(request: NextRequest) {
         status: prescription.status,
         validUntil: prescription.validUntil?.toISOString() || null,
         createdAt: prescription.createdAt.toISOString(),
-        items: prescription.items.map((item) => ({
-          id: item.id,
-          medicineId: item.medicineId,
-          medicineName: item.medicine.name,
-          medicineGenericName: item.medicine.genericName,
-          dosage: item.dosage,
-          frequency: item.frequency,
-          duration: item.duration,
-          instructions: item.instructions,
-        })),
+        items: prescription.items.map((item) => mapPrescriptionItemResponse(item)),
       },
       201,
     );

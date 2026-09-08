@@ -20,7 +20,7 @@ describe("isClinicalAppointmentStatus", () => {
 
 describe("prescriptionCreateSchema", () => {
   const baseItem = {
-    medicineId: "med-1",
+    medicineName: "Paracetamol",
     dosage: "500mg",
     frequency: "2x daily",
     duration: "5 days",

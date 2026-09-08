@@ -5,6 +5,7 @@ import { requireAuth } from "@/lib/auth-helpers";
 import { requireDatabase, apiError, apiSuccess } from "@/lib/api";
 import { createFulfillmentSchema } from "@/lib/validation";
 import { createNotification } from "@/lib/notifications/notification-service";
+import { displayMedicineName } from "@/lib/prescription-item-utils";
 
 // =============================================================================
 // POST /api/prescription-fulfillments
@@ -86,13 +87,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Server-side availability check: verify all medicines are available at this pharmacy
-    const pharmacyInventory = await prisma!.pharmacyMedicine.findMany({
-      where: {
-        pharmacyId,
-        inStock: true,
-        medicineId: { in: prescription.items.map((item) => item.medicineId) },
-      },
-    });
+    const catalogMedicineIds = prescription.items
+      .map((item) => item.medicineId)
+      .filter((id): id is string => Boolean(id));
+
+    const pharmacyInventory =
+      catalogMedicineIds.length > 0
+        ? await prisma!.pharmacyMedicine.findMany({
+            where: {
+              pharmacyId,
+              inStock: true,
+              medicineId: { in: catalogMedicineIds },
+            },
+          })
+        : [];
 
     const availableMedicineIds = new Set(pharmacyInventory.map((inv) => inv.medicineId));
 
@@ -106,10 +114,12 @@ export async function POST(request: NextRequest) {
           status: "PENDING",
           items: {
             create: prescription.items.map((item) => ({
-              pharmacyMedicineId: availableMedicineIds.has(item.medicineId)
-                ? pharmacyInventory.find((inv) => inv.medicineId === item.medicineId)?.id || null
-                : null,
-              medicineName: `${item.medicine.name} ${item.dosage}`,
+              pharmacyMedicineId:
+                item.medicineId && availableMedicineIds.has(item.medicineId)
+                  ? pharmacyInventory.find((inv) => inv.medicineId === item.medicineId)?.id ||
+                    null
+                  : null,
+              medicineName: `${displayMedicineName(item)} ${item.dosage}`,
               dosage: item.dosage,
               quantity: 1,
               fulfilled: false,

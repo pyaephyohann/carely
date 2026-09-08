@@ -413,7 +413,10 @@ model Prescription {
 model PrescriptionItem {
   id             String  @id @default(cuid())
   prescriptionId String
-  medicineId     String
+  /// Optional link to the global medicine catalog (legacy / pharmacy inventory)
+  medicineId     String?
+  /// Doctor-entered medicine name — always stored for display and history
+  medicineName   String
   dosage         String // e.g., "500mg"
   frequency      String // e.g., "3 times daily"
   duration       String // e.g., "7 days"
@@ -421,7 +424,7 @@ model PrescriptionItem {
 
   // Relations
   prescription Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
-  medicine     Medicine     @relation(fields: [medicineId], references: [id], onDelete: Restrict)
+  medicine     Medicine?    @relation(fields: [medicineId], references: [id], onDelete: Restrict)
 
   @@index([prescriptionId])
   @@index([medicineId])

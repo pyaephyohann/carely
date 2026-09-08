@@ -3,6 +3,7 @@ import { logError } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { requireDoctor } from "@/lib/auth-helpers";
 import { requireDatabase, apiError, apiSuccess } from "@/lib/api";
+import { mapPrescriptionItemResponse } from "@/lib/prescription-item-utils";
 import { consultationUpdateSchema } from "@/lib/validation";
 
 // =============================================================================
@@ -103,16 +104,7 @@ export async function GET(
         status: rx.status,
         validUntil: rx.validUntil?.toISOString() || null,
         createdAt: rx.createdAt.toISOString(),
-        items: rx.items.map((item) => ({
-          id: item.id,
-          medicineId: item.medicineId,
-          medicineName: item.medicine.name,
-          medicineGenericName: item.medicine.genericName,
-          dosage: item.dosage,
-          frequency: item.frequency,
-          duration: item.duration,
-          instructions: item.instructions,
-        })),
+        items: rx.items.map((item) => mapPrescriptionItemResponse(item)),
       })),
     });
   } catch (error) {

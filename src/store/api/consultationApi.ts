@@ -25,7 +25,7 @@ export interface ConsultationPatient {
 
 export interface PrescriptionItemData {
   id: string;
-  medicineId: string;
+  medicineId: string | null;
   medicineName: string;
   medicineGenericName: string | null;
   medicineCategory?: string;
@@ -118,7 +118,8 @@ export interface CreateConsultationRequest {
     notes?: string;
     validUntil?: string;
     items: {
-      medicineId: string;
+      medicineName: string;
+      medicineId?: string;
       dosage: string;
       frequency: string;
       duration: string;
@@ -141,7 +142,8 @@ export interface CreatePrescriptionRequest {
   notes?: string;
   validUntil?: string;
   items: {
-    medicineId: string;
+    medicineName: string;
+    medicineId?: string;
     dosage: string;
     frequency: string;
     duration: string;
@@ -154,7 +156,8 @@ export interface UpdatePrescriptionRequest {
   notes?: string;
   validUntil?: string;
   items?: {
-    medicineId: string;
+    medicineName: string;
+    medicineId?: string;
     dosage: string;
     frequency: string;
     duration: string;

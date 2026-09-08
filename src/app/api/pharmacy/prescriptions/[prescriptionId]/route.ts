@@ -3,6 +3,7 @@ import { logError } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { requirePharmacy } from "@/lib/auth-helpers";
 import { requireDatabase, apiError, apiSuccess } from "@/lib/api";
+import { mapPrescriptionItemResponse } from "@/lib/prescription-item-utils";
 
 // =============================================================================
 // Helper
@@ -78,16 +79,21 @@ export async function GET(
     }
 
     // Check medicine availability for each prescription item
-    const medicineIds = fulfillment.prescription.items.map((item: { medicineId: string }) => item.medicineId);
-    const inventory = await prisma!.pharmacyMedicine.findMany({
-      where: { pharmacyId, medicineId: { in: medicineIds } },
-      select: {
-        medicineId: true,
-        stock: true,
-        price: true,
-        inStock: true,
-      },
-    });
+    const medicineIds = fulfillment.prescription.items
+      .map((item) => item.medicineId)
+      .filter((id): id is string => Boolean(id));
+    const inventory =
+      medicineIds.length > 0
+        ? await prisma!.pharmacyMedicine.findMany({
+            where: { pharmacyId, medicineId: { in: medicineIds } },
+            select: {
+              medicineId: true,
+              stock: true,
+              price: true,
+              inStock: true,
+            },
+          })
+        : [];
 
     const inventoryMap = new Map(inventory.map((inv) => [inv.medicineId, inv]));
 
@@ -109,18 +115,11 @@ export async function GET(
         validUntil: fulfillment.prescription.validUntil?.toISOString() || null,
         createdAt: fulfillment.prescription.createdAt.toISOString(),
         doctor: fulfillment.prescription.doctor,
-        items: fulfillment.prescription.items.map((item: { id: string; medicineId: string; medicine: { name: string; genericName: string | null; category: string; dosageForms: string[] }; dosage: string; frequency: string; duration: string; instructions: string | null }) => {
-          const inv = inventoryMap.get(item.medicineId);
+        items: fulfillment.prescription.items.map((item) => {
+          const mapped = mapPrescriptionItemResponse(item);
+          const inv = item.medicineId ? inventoryMap.get(item.medicineId) : undefined;
           return {
-            id: item.id,
-            medicineId: item.medicineId,
-            medicineName: item.medicine.name,
-            medicineGenericName: item.medicine.genericName,
-            medicineCategory: item.medicine.category,
-            dosage: item.dosage,
-            frequency: item.frequency,
-            duration: item.duration,
-            instructions: item.instructions,
+            ...mapped,
             inStock: inv?.inStock ?? false,
             stock: inv?.stock ?? 0,
             price: inv ? Number(inv.price) : null,
