@@ -87,22 +87,62 @@ export interface ConsultationData {
 
 export interface MedicalRecordData {
   id: string;
-  type: string;
+  source: "consultation" | "standalone";
+  recordType: string;
+  visitDate: string;
   title: string;
-  description: string | null;
-  treatmentPlan: string | null;
-  attachments: string[];
-  createdAt: string;
+  summary: string | null;
+  appointmentStatus: string | null;
+  appointmentType: string | null;
+  hasPrescription: boolean;
+  prescriptionCount: number;
+  followUpDate: string | null;
+  diagnosis: string | null;
   doctor: {
     id: string;
     firstName: string;
     lastName: string;
     specialization: string | null;
   } | null;
-  consultation: {
+}
+
+export interface PatientMedicalRecordDetail {
+  id: string;
+  source: "consultation" | "standalone";
+  visitDate: string;
+  doctor: {
     id: string;
-    diagnosis: string;
+    firstName: string;
+    lastName: string;
+    phone: string | null;
+    avatar: string | null;
+    specialization: string | null;
   } | null;
+  appointment: {
+    id: string;
+    startTime: string;
+    endTime: string;
+    status: string;
+    type: string;
+    reason: string | null;
+  } | null;
+  clinical: {
+    diagnosis: string | null;
+    symptoms: string | null;
+    notes: string | null;
+    treatmentPlan: string | null;
+  };
+  followUpDate: string | null;
+  medicalRecord: {
+    id: string;
+    type: string;
+    title: string;
+    description: string | null;
+    treatmentPlan: string | null;
+    attachments: string[];
+    createdAt: string;
+  } | null;
+  prescriptions: PrescriptionData[];
 }
 
 export interface CreateConsultationRequest {
@@ -272,16 +312,22 @@ export const consultationApi = baseApi.injectEndpoints({
     // --- Patient: Medical records ---
     getPatientMedicalRecords: builder.query<
       { data: MedicalRecordData[]; meta: PaginationMeta },
-      { page?: number; limit?: number }
+      { page?: number; limit?: number; filter?: string }
     >({
       query: (params) => {
         const sp = new URLSearchParams();
         if (params.page) sp.set("page", params.page.toString());
         if (params.limit) sp.set("limit", params.limit.toString());
+        if (params.filter) sp.set("filter", params.filter);
         const qs = sp.toString();
         return `/patient/medical-records${qs ? `?${qs}` : ""}`;
       },
       providesTags: ["Patient"],
+    }),
+
+    getPatientMedicalRecord: builder.query<ApiResponse<PatientMedicalRecordDetail>, string>({
+      query: (recordId) => `/patient/medical-records/${recordId}`,
+      providesTags: (_result, _error, id) => [{ type: "Patient", id: `record-${id}` }],
     }),
 
     // --- Patient: Prescriptions ---
@@ -318,6 +364,7 @@ export const {
   useGetDoctorPrescriptionQuery,
   useUpdatePrescriptionMutation,
   useGetPatientMedicalRecordsQuery,
+  useGetPatientMedicalRecordQuery,
   useGetPatientPrescriptionsQuery,
   useGetPatientPrescriptionQuery,
 } = consultationApi;

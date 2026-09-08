@@ -3,10 +3,12 @@ import { logError } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { requirePatient } from "@/lib/auth-helpers";
 import { requireDatabase, apiError, apiSuccess } from "@/lib/api";
+import { fetchPatientMedicalRecordSummaries } from "@/lib/patient-medical-record-service";
+import { isPatientMedicalRecordFilter } from "@/lib/patient-medical-record-utils";
 
 // =============================================================================
 // GET /api/patient/medical-records
-// List the authenticated patient's medical records
+// List clinical encounters for the authenticated patient
 // =============================================================================
 
 export async function GET(request: NextRequest) {
@@ -17,8 +19,9 @@ export async function GET(request: NextRequest) {
   if (!auth.authenticated) return auth.response;
 
   try {
-    const patient = await prisma!.patient.findUnique({
+    const patient = await prisma!.patient.findFirst({
       where: { userId: auth.user.userId },
+      select: { id: true },
     });
 
     if (!patient) {
@@ -28,72 +31,19 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") || "20", 10)));
-    const skip = (page - 1) * limit;
+    const filterParam = searchParams.get("filter") || "all";
+    const filter = isPatientMedicalRecordFilter(filterParam) ? filterParam : "all";
 
-    const where = { patientId: patient.id };
+    const { records, pagination } = await fetchPatientMedicalRecordSummaries(prisma!, patient.id, {
+      filter,
+      page,
+      limit,
+    });
 
-    const [records, total] = await Promise.all([
-      prisma!.medicalRecord.findMany({
-        where,
-        include: {
-          doctor: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              specialization: {
-                select: { name: true },
-              },
-            },
-          },
-          consultation: {
-            select: {
-              id: true,
-              diagnosis: true,
-            },
-          },
-        },
-        orderBy: { createdAt: "desc" },
-        skip,
-        take: limit,
-      }),
-      prisma!.medicalRecord.count({ where }),
-    ]);
-
-    return apiSuccess(
-      records.map((record) => ({
-        id: record.id,
-        type: record.type,
-        title: record.title,
-        description: record.description,
-        treatmentPlan: record.treatmentPlan,
-        attachments: record.attachments,
-        createdAt: record.createdAt.toISOString(),
-        doctor: record.doctor
-          ? {
-              id: record.doctor.id,
-              firstName: record.doctor.firstName,
-              lastName: record.doctor.lastName,
-              specialization: record.doctor.specialization?.name || null,
-            }
-          : null,
-        consultation: record.consultation
-          ? {
-              id: record.consultation.id,
-              diagnosis: record.consultation.diagnosis,
-            }
-          : null,
-      })),
-      {
-        status: 200,
-        pagination: {
-          page,
-          limit,
-          total,
-          totalPages: Math.ceil(total / limit),
-        },
-      },
-    );
+    return apiSuccess(records, {
+      status: 200,
+      pagination,
+    });
   } catch (error) {
     logError("Error fetching medical records:", error);
     return apiError("Failed to fetch medical records", "INTERNAL_ERROR", 500);

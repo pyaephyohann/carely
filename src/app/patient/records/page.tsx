@@ -1,13 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   ClipboardList,
   Calendar,
   Stethoscope,
   AlertCircle,
-  FileText,
+  ChevronRight,
+  RefreshCw,
   Pill,
+  FileText,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,48 +20,38 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/features/patient/empty-state";
 import { Pagination } from "@/components/features/patient/pagination";
 import { useGetPatientMedicalRecordsQuery } from "@/store/api/consultationApi";
+import { getStatusLabel, getStatusVariant } from "@/lib/appointment-utils";
+import {
+  getRecordTypeLabel,
+  PATIENT_MEDICAL_RECORD_FILTERS,
+  type PatientMedicalRecordFilter,
+} from "@/lib/patient-medical-record-utils";
+import { cn } from "@/utils/cn";
 
+const FILTERS = PATIENT_MEDICAL_RECORD_FILTERS.map((value) => ({
+  value,
+  label:
+    value === "all"
+      ? "All"
+      : value.charAt(0).toUpperCase() + value.slice(1),
+}));
 
-// =============================================================================
-// Record Type Helpers
-// =============================================================================
-
-function getRecordTypeIcon(type: string) {
-  switch (type) {
-    case "VISIT_NOTE":
-      return <Stethoscope className="h-4 w-4" />;
-    case "LAB_RESULT":
-      return <FileText className="h-4 w-4" />;
-    case "PRESCRIPTION":
-      return <Pill className="h-4 w-4" />;
-    default:
-      return <ClipboardList className="h-4 w-4" />;
-  }
+function formatVisitDate(iso: string) {
+  return new Date(iso).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
-
-function getRecordTypeLabel(type: string): string {
-  const labels: Record<string, string> = {
-    LAB_RESULT: "Lab Result",
-    IMAGING: "Imaging",
-    PRESCRIPTION: "Prescription",
-    REFERRAL: "Referral",
-    VISIT_NOTE: "Visit Note",
-    OTHER: "Other",
-  };
-  return labels[type] || type;
-}
-
-// =============================================================================
-// Component
-// =============================================================================
 
 export default function RecordsPage() {
+  const [filter, setFilter] = useState<PatientMedicalRecordFilter>("all");
   const [page, setPage] = useState(1);
 
-  const { data, isLoading, error } = useGetPatientMedicalRecordsQuery({
-    page,
-    limit: 10,
-  });
+  const { data, isLoading, error, refetch, isFetching } = useGetPatientMedicalRecordsQuery(
+    { page, limit: 10, filter },
+    { refetchOnFocus: true, pollingInterval: 30_000 },
+  );
 
   const records = data?.data || [];
   const meta = data?.meta;
@@ -69,24 +62,54 @@ export default function RecordsPage() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
+        className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4"
       >
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground">Medical Records</h1>
-        <p className="text-muted-foreground mt-1">
-          Your consultation history and medical documentation
-        </p>
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Medical Records</h1>
+          <p className="text-muted-foreground mt-1">
+            Your health history and care information in one place.
+          </p>
+        </div>
+        <Link href="/patient/doctors" className="self-start">
+          <Button variant="outline" className="cursor-pointer">
+            <Stethoscope className="h-4 w-4" />
+            Find a Doctor
+          </Button>
+        </Link>
       </motion.div>
 
-      {/* Content */}
+      <div className="flex gap-1 bg-muted p-1 rounded-lg w-full overflow-x-auto">
+        {FILTERS.map((f) => (
+          <button
+            key={f.value}
+            type="button"
+            onClick={() => {
+              setFilter(f.value);
+              setPage(1);
+            }}
+            className={cn(
+              "px-4 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap cursor-pointer",
+              filter === f.value
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
       {error ? (
         <Card>
           <CardContent className="p-8">
             <EmptyState
               icon={<AlertCircle className="h-8 w-8 text-red-500" />}
-              title="Couldn't load medical records"
-              description="Something went wrong while loading your records."
+              title="Unable to load your medical records"
+              description="Something went wrong while loading your records. Your session may still be valid."
               action={
-                <Button variant="outline" onClick={() => window.location.reload()}>
-                  Try Again
+                <Button variant="outline" onClick={() => refetch()} className="cursor-pointer">
+                  <RefreshCw className="h-4 w-4" />
+                  Retry
                 </Button>
               }
             />
@@ -98,10 +121,7 @@ export default function RecordsPage() {
             <Card key={i}>
               <CardContent className="p-5">
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Skeleton className="h-5 w-40" />
-                    <Skeleton className="h-5 w-20" />
-                  </div>
+                  <Skeleton className="h-5 w-40" />
                   <Skeleton className="h-4 w-64" />
                   <Skeleton className="h-3 w-48" />
                 </div>
@@ -115,12 +135,23 @@ export default function RecordsPage() {
             <EmptyState
               icon={<ClipboardList className="h-8 w-8" />}
               title="No medical records yet"
-              description="Your medical records will be available here after consultations with your doctors."
+              description="Your completed visits and clinical information will appear here."
+              action={
+                <Link href="/patient/doctors">
+                  <Button className="cursor-pointer">
+                    <Stethoscope className="h-4 w-4" />
+                    Find a Doctor
+                  </Button>
+                </Link>
+              }
             />
           </CardContent>
         </Card>
       ) : (
         <>
+          {isFetching && !isLoading && (
+            <p className="text-xs text-muted-foreground">Refreshing records…</p>
+          )}
           <div className="space-y-3">
             {records.map((record, idx) => (
               <motion.div
@@ -129,62 +160,75 @@ export default function RecordsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2, delay: idx * 0.03 }}
               >
-                <Card className="hover:shadow-sm transition-shadow">
-                  <CardContent className="p-5">
-                    <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-lg bg-violet-100 dark:bg-violet-950 text-violet-600 dark:text-violet-400 flex items-center justify-center flex-shrink-0">
-                        {getRecordTypeIcon(record.type)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <h3 className="font-medium text-foreground">{record.title}</h3>
-                            <p className="text-sm text-muted-foreground mt-0.5">
-                              {record.doctor
-                                ? `Dr. ${record.doctor.firstName} ${record.doctor.lastName}`
-                                : "Unknown doctor"}
-                              {record.doctor?.specialization &&
-                                ` · ${record.doctor.specialization}`}
-                            </p>
-                          </div>
-                          <Badge variant="default" size="sm">
-                            {getRecordTypeLabel(record.type)}
-                          </Badge>
-                        </div>
-
-                        {record.description && (
-                          <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
-                            {record.description}
-                          </p>
-                        )}
-
-                        <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <Calendar className="h-3.5 w-3.5" />
-                            {new Date(record.createdAt).toLocaleDateString("en-US", {
-                              month: "long",
-                              day: "numeric",
-                              year: "numeric",
-                            })}
-                          </span>
-                          {record.consultation && (
-                            <span className="flex items-center gap-1">
-                              <Stethoscope className="h-3.5 w-3.5" />
-                              Consultation: {record.consultation.diagnosis}
-                            </span>
+                <Link href={`/patient/records/${record.id}`} className="block cursor-pointer">
+                  <Card className="hover:shadow-sm transition-shadow">
+                    <CardContent className="p-5">
+                      <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 rounded-lg bg-violet-100 dark:bg-violet-950 text-violet-600 dark:text-violet-400 flex items-center justify-center flex-shrink-0">
+                          {record.hasPrescription ? (
+                            <Pill className="h-4 w-4" />
+                          ) : (
+                            <FileText className="h-4 w-4" />
                           )}
                         </div>
-
-                        {record.treatmentPlan && (
-                          <div className="mt-3 p-3 rounded-lg bg-muted/50 border border-border">
-                            <p className="text-xs text-muted-foreground mb-1">Treatment Plan</p>
-                            <p className="text-sm text-foreground">{record.treatmentPlan}</p>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <h3 className="font-medium text-foreground truncate">{record.title}</h3>
+                              <p className="text-sm text-muted-foreground mt-0.5">
+                                {record.doctor
+                                  ? `Dr. ${record.doctor.firstName} ${record.doctor.lastName}`
+                                  : "Doctor unavailable"}
+                                {record.doctor?.specialization &&
+                                  ` · ${record.doctor.specialization}`}
+                              </p>
+                            </div>
+                            <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
                           </div>
-                        )}
+
+                          {record.summary && (
+                            <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+                              {record.summary}
+                            </p>
+                          )}
+
+                          <div className="flex flex-wrap items-center gap-2 mt-3">
+                            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                              <Calendar className="h-3.5 w-3.5" />
+                              {formatVisitDate(record.visitDate)}
+                            </span>
+                            {record.appointmentStatus && (
+                              <Badge variant={getStatusVariant(record.appointmentStatus)} size="sm">
+                                {getStatusLabel(record.appointmentStatus)}
+                              </Badge>
+                            )}
+                            <Badge variant="default" size="sm">
+                              {getRecordTypeLabel(record.recordType)}
+                            </Badge>
+                            {record.hasPrescription && (
+                              <Badge variant="info" size="sm">
+                                {record.prescriptionCount === 1
+                                  ? "Prescription"
+                                  : `${record.prescriptionCount} Prescriptions`}
+                              </Badge>
+                            )}
+                            {record.followUpDate && (
+                              <Badge variant="warning" size="sm">
+                                Follow-up {formatVisitDate(record.followUpDate)}
+                              </Badge>
+                            )}
+                          </div>
+
+                          <div className="mt-3">
+                            <span className="text-sm font-medium text-violet-600 dark:text-violet-400">
+                              View Details
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </Link>
               </motion.div>
             ))}
           </div>
