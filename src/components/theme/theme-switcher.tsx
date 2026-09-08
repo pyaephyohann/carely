@@ -46,10 +46,10 @@ export function ThemeSwitcher({ className }: { className?: string }) {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "flex items-center justify-center w-9 h-9 rounded-lg transition-colors",
+          "flex items-center justify-center w-9 h-9 rounded-lg transition-colors cursor-pointer",
           "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900",
           "dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100",
-          "cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+          "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
           "focus:ring-offset-background"
         )}
         aria-label={`Theme: ${theme}. Click to change.`}

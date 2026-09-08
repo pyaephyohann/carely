@@ -103,7 +103,7 @@ export function Hero() {
           >
             <Link
               href="/patient/doctors"
-              className="group flex items-center gap-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-5 py-4 shadow-sm hover:shadow-md hover:border-violet-200 dark:hover:border-violet-800 transition-all duration-200"
+              className="group flex items-center gap-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-5 py-4 shadow-sm hover:shadow-md hover:border-violet-200 dark:hover:border-violet-800 transition-all duration-200 cursor-pointer"
             >
               <Search className="h-5 w-5 text-zinc-400 group-hover:text-violet-500 dark:text-zinc-500 transition-colors" />
               <span className="flex-1 text-left text-zinc-500 group-hover:text-zinc-700 dark:text-zinc-400 dark:group-hover:text-zinc-200 transition-colors">

@@ -80,7 +80,7 @@ export default function PatientPharmacyDetailPage() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
-        <Link href="/patient/pharmacies" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <Link href="/patient/pharmacies" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
           <ArrowLeft className="h-4 w-4" />
           Back to Pharmacies
         </Link>

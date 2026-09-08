@@ -62,7 +62,7 @@ function ToastItem({ toast }: { toast: ToastType }) {
       </div>
       <button
         onClick={() => dispatch(removeToast(toast.id))}
-        className="flex-shrink-0 p-0.5 rounded hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+        className="flex-shrink-0 p-0.5 rounded hover:bg-black/10 dark:hover:bg-white/10 transition-colors cursor-pointer"
         aria-label="Dismiss"
       >
         <X className="h-4 w-4" />

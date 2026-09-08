@@ -80,7 +80,7 @@ export default function PatientLayout({
       >
         {/* Logo */}
         <div className="h-16 flex items-center px-4 border-b border-border">
-          <Link href="/" className="flex items-center gap-2 overflow-hidden">
+          <Link href="/" className="flex items-center gap-2 overflow-hidden cursor-pointer">
             <div className="flex items-center justify-center w-8 h-8 bg-violet-600 rounded-lg flex-shrink-0">
               <Heart className="h-5 w-5 text-white" fill="currentColor" />
             </div>
@@ -109,12 +109,12 @@ export default function PatientLayout({
                 key={item.href}
                 href={item.disabled ? "#" : item.href}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer",
                   item.disabled
                     ? "text-zinc-400 dark:text-zinc-600 cursor-not-allowed"
                     : isActive
-                      ? "bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-400"
-                      : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100",
+                      ? "bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-400 cursor-pointer"
+                      : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 cursor-pointer",
                 )}
                 title={collapsed ? item.label : undefined}
                 aria-disabled={item.disabled}
@@ -165,7 +165,7 @@ export default function PatientLayout({
             </AnimatePresence>
             <button
               onClick={() => setCollapsed(!collapsed)}
-              className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors flex-shrink-0"
+              className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors flex-shrink-0 cursor-pointer"
               aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
               <ChevronLeft
@@ -195,7 +195,7 @@ export default function PatientLayout({
               className="fixed inset-y-0 left-0 w-72 bg-card border-r border-border z-50 md:hidden flex flex-col"
             >
               <div className="h-16 flex items-center justify-between px-4 border-b border-border">
-                <Link href="/" className="flex items-center gap-2">
+                <Link href="/" className="flex items-center gap-2 cursor-pointer">
                   <div className="flex items-center justify-center w-8 h-8 bg-violet-600 rounded-lg">
                     <Heart className="h-5 w-5 text-white" fill="currentColor" />
                   </div>
@@ -223,8 +223,8 @@ export default function PatientLayout({
                         item.disabled
                           ? "text-zinc-400 dark:text-zinc-600 cursor-not-allowed"
                           : isActive
-                            ? "bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-400"
-                            : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100",
+                            ? "bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-400 cursor-pointer"
+                            : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 cursor-pointer",
                       )}
                     >
                       <Icon className="h-5 w-5" />
@@ -275,7 +275,7 @@ export default function PatientLayout({
             <Menu className="h-5 w-5" />
           </button>
           <div className="flex items-center gap-2">
-            <Link href="/" className="flex items-center gap-1.5">
+            <Link href="/" className="flex items-center gap-1.5 cursor-pointer">
               <div className="w-6 h-6 bg-violet-600 rounded-md flex items-center justify-center">
                 <Heart className="h-3.5 w-3.5 text-white" fill="currentColor" />
               </div>

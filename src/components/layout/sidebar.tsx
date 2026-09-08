@@ -89,7 +89,7 @@ export function Sidebar({ role, firstName = "User", lastName = "" }: SidebarProp
     >
       {/* Logo */}
       <div className="h-16 flex items-center px-4 border-b border-zinc-100 dark:border-zinc-800">
-        <Link href="/" className="flex items-center gap-2 overflow-hidden">
+        <Link href="/" className="flex items-center gap-2 overflow-hidden cursor-pointer">
           <div className="flex items-center justify-center w-8 h-8 bg-violet-600 rounded-lg flex-shrink-0">
             <Heart className="h-5 w-5 text-white" fill="currentColor" />
           </div>
@@ -117,7 +117,7 @@ export function Sidebar({ role, firstName = "User", lastName = "" }: SidebarProp
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer",
                 isActive
                   ? "bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-400"
                   : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"

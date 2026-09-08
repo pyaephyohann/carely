@@ -62,7 +62,7 @@ export default function PharmacyPrescriptionsPage() {
             key={f.value}
             onClick={() => { setFilter(f.value); setPage(1); }}
             className={cn(
-              "px-3 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap",
+              "px-3 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap cursor-pointer",
               filter === f.value
                 ? "bg-background text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground",

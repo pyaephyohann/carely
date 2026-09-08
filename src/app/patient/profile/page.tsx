@@ -238,7 +238,7 @@ export default function ProfilePage() {
                     name="gender"
                     value={currentFormData.gender || ""}
                     onChange={handleChange}
-                    className="w-full px-4 py-2.5 text-sm rounded-lg border transition-colors duration-200 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 border-zinc-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+                    className="w-full px-4 py-2.5 text-sm rounded-lg border transition-colors duration-200 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 border-zinc-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 cursor-pointer"
                   >
                     <option value="">Select gender</option>
                     {GENDER_OPTIONS.map((opt) => (

@@ -53,7 +53,7 @@ export default function AdminDoctorDetailPage({ params }: { params: Promise<{ do
       {/* Back Link */}
       <Link
         href="/admin/doctors"
-        className="inline-flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+        className="inline-flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 cursor-pointer"
       >
         <ArrowLeft className="h-4 w-4" /> Back to Doctors
       </Link>

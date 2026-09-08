@@ -89,7 +89,7 @@ export function Modal({
                 {showClose && (
                   <button
                     onClick={onClose}
-                    className="p-1 rounded-lg text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 dark:hover:text-zinc-200 dark:hover:bg-zinc-800 transition-colors"
+                    className="p-1 rounded-lg text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 dark:hover:text-zinc-200 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
                     aria-label="Close modal"
                   >
                     <X className="h-5 w-5" />

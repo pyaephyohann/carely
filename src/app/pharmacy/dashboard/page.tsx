@@ -179,7 +179,7 @@ export default function PharmacyDashboard() {
               {fulfillments.length > 0 && (
                 <Link
                   href="/pharmacy/prescriptions"
-                  className="text-sm text-violet-600 hover:text-violet-700 dark:text-violet-400"
+                  className="text-sm text-violet-600 hover:text-violet-700 dark:text-violet-400 cursor-pointer"
                 >
                   View all
                 </Link>

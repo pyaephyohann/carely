@@ -13,7 +13,7 @@ export default function AuthLayout({
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-violet-600 to-violet-800 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/images/pattern.svg')] opacity-10" />
         <div className="relative z-10 flex flex-col justify-center px-12 xl:px-24">
-          <Link href="/" className="flex items-center gap-2 mb-8">
+          <Link href="/" className="flex items-center gap-2 mb-8 cursor-pointer">
             <div className="flex items-center justify-center w-10 h-10 bg-white/20 rounded-lg">
               <Heart className="h-6 w-6 text-white" fill="currentColor" />
             </div>
@@ -33,7 +33,7 @@ export default function AuthLayout({
         <div className="w-full max-w-md">
           {/* Mobile Header */}
           <div className="lg:hidden flex items-center justify-between mb-8">
-            <Link href="/" className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2 cursor-pointer">
               <div className="flex items-center justify-center w-8 h-8 bg-violet-600 rounded-lg">
                 <Heart className="h-5 w-5 text-white" fill="currentColor" />
               </div>

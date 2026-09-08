@@ -132,7 +132,7 @@ export default function DoctorsPage() {
           <button
             onClick={() => updateParam("specialization", null)}
             className={cn(
-              "px-3 py-1 text-sm rounded-full transition-colors",
+              "px-3 py-1 text-sm rounded-full transition-colors cursor-pointer",
               !urlSpecialization
                 ? "bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300 font-medium"
                 : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700",
@@ -150,7 +150,7 @@ export default function DoctorsPage() {
                 )
               }
               className={cn(
-                "px-3 py-1 text-sm rounded-full transition-colors",
+                "px-3 py-1 text-sm rounded-full transition-colors cursor-pointer",
                 urlSpecialization === spec.slug
                   ? "bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300 font-medium"
                   : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700",
@@ -173,7 +173,7 @@ export default function DoctorsPage() {
                     setLocalSearch("");
                     updateParam("search", null);
                   }}
-                  className="ml-1 hover:text-violet-900 dark:hover:text-violet-100"
+                  className="ml-1 hover:text-violet-900 dark:hover:text-violet-100 cursor-pointer"
                   aria-label={`Remove search filter: ${urlSearch}`}
                 >
                   <X className="h-3 w-3" />
@@ -185,7 +185,7 @@ export default function DoctorsPage() {
                 {specializations.find((s) => s.slug === urlSpecialization)?.name || urlSpecialization}
                 <button
                   onClick={() => updateParam("specialization", null)}
-                  className="ml-1 hover:text-violet-900 dark:hover:text-violet-100"
+                  className="ml-1 hover:text-violet-900 dark:hover:text-violet-100 cursor-pointer"
                   aria-label="Remove specialization filter"
                 >
                   <X className="h-3 w-3" />
@@ -194,7 +194,7 @@ export default function DoctorsPage() {
             )}
             <button
               onClick={clearFilters}
-              className="text-sm text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300"
+              className="text-sm text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300 cursor-pointer"
             >
               Clear all
             </button>

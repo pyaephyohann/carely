@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Calendar, Clock, Video, MapPin, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,6 +26,7 @@ const FILTERS = [
 type FilterValue = (typeof FILTERS)[number]["value"];
 
 export default function DoctorAppointmentsPage() {
+  const router = useRouter();
   const [filter, setFilter] = useState<FilterValue>("pending");
   const [page, setPage] = useState(1);
   const [statusUpdateId, setStatusUpdateId] = useState<string | null>(null);
@@ -65,7 +66,7 @@ export default function DoctorAppointmentsPage() {
             key={f.value}
             onClick={() => { setFilter(f.value); setPage(1); }}
             className={cn(
-              "px-4 py-1.5 text-sm font-medium rounded-md transition-colors",
+              "px-4 py-1.5 text-sm font-medium rounded-md transition-colors cursor-pointer",
               filter === f.value ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
             )}
           >
@@ -119,9 +120,14 @@ export default function DoctorAppointmentsPage() {
                           {appt.reason && <p className="text-sm text-muted-foreground mt-2 italic">&quot;{appt.reason}&quot;</p>}
 
                           <div className="flex items-center gap-2 mt-3">
-                            <Link href={`/doctor/appointments/${appt.id}`}>
-                              <Button variant="outline" size="sm">View Details</Button>
-                            </Link>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="cursor-pointer"
+                              onClick={() => router.push(`/doctor/appointments/${appt.id}`)}
+                            >
+                              View Details
+                            </Button>
                             {validTransitions.includes("CONFIRMED") && (
                               <Button
                                 size="sm"

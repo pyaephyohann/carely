@@ -406,7 +406,7 @@ export default function DoctorDashboard() {
               <h2 className="text-lg font-semibold text-foreground">Today&apos;s Schedule</h2>
               <Link
                 href="/doctor/appointments"
-                className="text-sm text-violet-600 dark:text-violet-400 hover:underline flex items-center gap-1"
+                className="text-sm text-violet-600 dark:text-violet-400 hover:underline flex items-center gap-1 cursor-pointer"
               >
                 View all <ArrowRight className="h-3.5 w-3.5" />
               </Link>
@@ -498,7 +498,7 @@ export default function DoctorDashboard() {
               </div>
               <Link
                 href="/doctor/appointments"
-                className="text-sm text-violet-600 dark:text-violet-400 hover:underline flex items-center gap-1 shrink-0"
+                className="text-sm text-violet-600 dark:text-violet-400 hover:underline flex items-center gap-1 shrink-0 cursor-pointer"
               >
                 Full list <ArrowRight className="h-3.5 w-3.5" />
               </Link>
@@ -562,7 +562,7 @@ export default function DoctorDashboard() {
                   <Link
                     key={item.patient.id}
                     href={`/doctor/appointments/${item.lastAppointmentId}`}
-                    className="block"
+                    className="block cursor-pointer"
                   >
                     <div className="p-4 rounded-xl border border-border hover:border-violet-200 dark:hover:border-violet-800 hover:shadow-sm transition-all h-full">
                       <div className="flex items-center gap-3 mb-3">

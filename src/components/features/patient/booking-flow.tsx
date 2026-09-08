@@ -177,7 +177,7 @@ export function BookingFlow({
                     setStep("time");
                   }}
                   className={cn(
-                    "flex flex-col items-center p-2 rounded-lg text-sm transition-colors",
+                    "flex flex-col items-center p-2 rounded-lg text-sm transition-colors cursor-pointer",
                     d.dateStr === selectedDate
                       ? "bg-violet-600 text-white"
                       : "bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-foreground",
@@ -208,7 +208,7 @@ export function BookingFlow({
               </h3>
               <button
                 onClick={() => setStep("date")}
-                className="text-sm text-violet-600 hover:text-violet-700 dark:text-violet-400"
+                className="text-sm text-violet-600 hover:text-violet-700 dark:text-violet-400 cursor-pointer"
               >
                 Change date
               </button>
@@ -226,7 +226,7 @@ export function BookingFlow({
                 <p>No available slots for this date.</p>
                 <button
                   onClick={() => setStep("date")}
-                  className="text-sm text-violet-600 hover:text-violet-700 dark:text-violet-400 mt-2"
+                  className="text-sm text-violet-600 hover:text-violet-700 dark:text-violet-400 mt-2 cursor-pointer"
                 >
                   Try another date
                 </button>
@@ -241,7 +241,7 @@ export function BookingFlow({
                       setStep("type");
                     }}
                     className={cn(
-                      "px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                      "px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer",
                       selectedSlot?.localStartTime === slot.localStartTime
                         ? "bg-violet-600 text-white"
                         : "bg-zinc-100 dark:bg-zinc-800 hover:bg-violet-100 dark:hover:bg-violet-950 text-foreground",
@@ -268,7 +268,7 @@ export function BookingFlow({
               <button
                 onClick={() => setAppointmentType("IN_PERSON")}
                 className={cn(
-                  "p-4 rounded-lg border-2 text-left transition-colors",
+                  "p-4 rounded-lg border-2 text-left transition-colors cursor-pointer",
                   appointmentType === "IN_PERSON"
                     ? "border-violet-600 bg-violet-50 dark:bg-violet-950"
                     : "border-border hover:border-zinc-300 dark:hover:border-zinc-600",
@@ -281,7 +281,7 @@ export function BookingFlow({
               <button
                 onClick={() => setAppointmentType("VIRTUAL")}
                 className={cn(
-                  "p-4 rounded-lg border-2 text-left transition-colors",
+                  "p-4 rounded-lg border-2 text-left transition-colors cursor-pointer",
                   appointmentType === "VIRTUAL"
                     ? "border-violet-600 bg-violet-50 dark:bg-violet-950"
                     : "border-border hover:border-zinc-300 dark:hover:border-zinc-600",

@@ -49,19 +49,23 @@ import { isClinicalAppointmentStatus } from "@/lib/prescription-service";
 export default function DoctorAppointmentDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const appointmentId = params.appointmentId as string;
+  const rawAppointmentId = params?.appointmentId;
+  const appointmentId = Array.isArray(rawAppointmentId)
+    ? rawAppointmentId[0]
+    : rawAppointmentId;
   const [showConsultation, setShowConsultation] = useState(false);
   const [showPrescriptionForm, setShowPrescriptionForm] = useState(false);
 
   const { data, isLoading, error, refetch, isFetching } =
-    useGetDoctorAppointmentDetailQuery(appointmentId, {
+    useGetDoctorAppointmentDetailQuery(appointmentId ?? "", {
+      skip: !appointmentId,
       refetchOnFocus: true,
     });
   const [updateStatus, { isLoading: isUpdating }] = useUpdateAppointmentStatusMutation();
 
   const appointment = data?.data;
 
-  if (isLoading) {
+  if (!appointmentId || isLoading) {
     return (
       <div className="max-w-2xl mx-auto space-y-6">
         <Skeleton className="h-4 w-32" />
@@ -76,16 +80,42 @@ export default function DoctorAppointmentDetailPage() {
   }
 
   if (error || !appointment) {
+    const isNotFound =
+      typeof error === "object" &&
+      error !== null &&
+      "status" in error &&
+      (error as { status?: number }).status === 404;
+
     return (
       <div className="max-w-2xl mx-auto">
         <EmptyState
           icon={<AlertCircle className="h-8 w-8 text-red-500" />}
-          title="Appointment not found"
-          description="This appointment doesn't exist or you don't have access."
+          title={isNotFound ? "Appointment not found" : "Unable to load appointment"}
+          description={
+            isNotFound
+              ? "This appointment doesn't exist or you don't have access."
+              : "Something went wrong while loading this appointment. Your session may still be valid."
+          }
           action={
-            <Button onClick={() => router.push("/doctor/appointments")}>
-              Back to Appointments
-            </Button>
+            <div className="flex flex-wrap gap-2 justify-center">
+              {!isNotFound && (
+                <Button
+                  variant="outline"
+                  onClick={() => refetch()}
+                  disabled={isFetching}
+                  className="cursor-pointer"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
+                  Retry
+                </Button>
+              )}
+              <Button
+                onClick={() => router.push("/doctor/appointments")}
+                className="cursor-pointer"
+              >
+                Back to Appointments
+              </Button>
+            </div>
           }
         />
       </div>

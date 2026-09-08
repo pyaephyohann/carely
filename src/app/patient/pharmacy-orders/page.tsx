@@ -78,7 +78,7 @@ export default function PatientPharmacyOrdersPage() {
             key={f.value}
             onClick={() => { setFilter(f.value); setPage(1); }}
             className={cn(
-              "px-4 py-1.5 text-sm font-medium rounded-md transition-colors",
+              "px-4 py-1.5 text-sm font-medium rounded-md transition-colors cursor-pointer",
               filter === f.value
                 ? "bg-background text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground",

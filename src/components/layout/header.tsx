@@ -58,7 +58,7 @@ export function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 shrink-0">
+          <Link href="/" className="flex items-center gap-2 shrink-0 cursor-pointer">
             <div className="flex items-center justify-center w-8 h-8 bg-violet-600 rounded-lg">
               <Heart className="h-5 w-5 text-white" fill="currentColor" />
             </div>
@@ -74,7 +74,7 @@ export function Header() {
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    "px-3 py-2 text-sm font-medium rounded-lg transition-colors",
+                    "px-3 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer",
                     isActive
                       ? "text-violet-700 bg-violet-50 dark:text-violet-400 dark:bg-violet-950"
                       : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-800"
@@ -94,7 +94,7 @@ export function Header() {
               <div className="flex items-center gap-2 ml-1">
                 <Link
                   href={ROLE_DASHBOARDS[user.role] || "/patient/dashboard"}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
                 >
                   <Avatar firstName={firstName} lastName={lastName} size="sm" />
                   <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
@@ -159,7 +159,7 @@ export function Header() {
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    "block px-4 py-2.5 text-sm font-medium rounded-lg transition-colors",
+                    "block px-4 py-2.5 text-sm font-medium rounded-lg transition-colors cursor-pointer",
                     pathname === link.href
                       ? "text-violet-700 bg-violet-50 dark:text-violet-400 dark:bg-violet-950"
                       : "text-zinc-600 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:bg-zinc-800"
@@ -174,7 +174,7 @@ export function Header() {
                   <>
                     <Link
                       href={ROLE_DASHBOARDS[user.role] || "/patient/dashboard"}
-                      className="block"
+                      className="block cursor-pointer"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       <Button variant="outline" className="w-full justify-start">
@@ -197,12 +197,12 @@ export function Header() {
                   </>
                 ) : (
                   <>
-                    <Link href="/login" className="block" onClick={() => setMobileMenuOpen(false)}>
+                    <Link href="/login" className="block cursor-pointer" onClick={() => setMobileMenuOpen(false)}>
                       <Button variant="outline" className="w-full">
                         Log In
                       </Button>
                     </Link>
-                    <Link href="/register" className="block" onClick={() => setMobileMenuOpen(false)}>
+                    <Link href="/register" className="block cursor-pointer" onClick={() => setMobileMenuOpen(false)}>
                       <Button className="w-full">Get Started</Button>
                     </Link>
                   </>

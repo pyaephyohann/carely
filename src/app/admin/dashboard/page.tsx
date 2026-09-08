@@ -117,7 +117,7 @@ export default function AdminDashboardPage() {
             <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Pending Verifications</h2>
             <Link
               href="/admin/doctors?verified=false"
-              className="text-sm text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300"
+              className="text-sm text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300 cursor-pointer"
             >
               View all
             </Link>
@@ -142,7 +142,7 @@ export default function AdminDashboardPage() {
                     </div>
                     <Link
                       href={`/admin/doctors/${doc.id}`}
-                      className="text-xs text-violet-600 hover:text-violet-700 dark:text-violet-400 font-medium"
+                      className="text-xs text-violet-600 hover:text-violet-700 dark:text-violet-400 font-medium cursor-pointer"
                     >
                       Review
                     </Link>
@@ -159,7 +159,7 @@ export default function AdminDashboardPage() {
             <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Recent Users</h2>
             <Link
               href="/admin/users"
-              className="text-sm text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300"
+              className="text-sm text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300 cursor-pointer"
             >
               View all
             </Link>

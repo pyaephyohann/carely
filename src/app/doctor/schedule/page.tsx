@@ -119,11 +119,11 @@ export default function DoctorSchedulePage() {
         <p className="text-muted-foreground mt-1">
           Manage your working hours and availability exceptions. Pending booking requests and
           confirmed visits appear on your{" "}
-          <Link href="/doctor/dashboard" className="text-violet-600 dark:text-violet-400 hover:underline">
+          <Link href="/doctor/dashboard" className="text-violet-600 dark:text-violet-400 hover:underline cursor-pointer">
             Dashboard
           </Link>{" "}
           and{" "}
-          <Link href="/doctor/appointments" className="text-violet-600 dark:text-violet-400 hover:underline">
+          <Link href="/doctor/appointments" className="text-violet-600 dark:text-violet-400 hover:underline cursor-pointer">
             Appointments
           </Link>
           .
@@ -170,7 +170,7 @@ export default function DoctorSchedulePage() {
                           type="checkbox"
                           checked={daySchedule.active}
                           onChange={(e) => handleScheduleChange(idx, "active", e.target.checked)}
-                          className="h-4 w-4 rounded border-zinc-300 text-violet-600 focus:ring-violet-500"
+                          className="h-4 w-4 rounded border-zinc-300 text-violet-600 focus:ring-violet-500 cursor-pointer"
                         />
                         <span className={cn("text-sm font-medium", daySchedule.active ? "text-foreground" : "text-muted-foreground")}>
                           {day}
@@ -227,7 +227,7 @@ export default function DoctorSchedulePage() {
                   <select
                     value={newExceptionAvailable ? "available" : "blocked"}
                     onChange={(e) => setNewExceptionAvailable(e.target.value === "available")}
-                    className="w-full px-4 py-2.5 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-violet-500/20"
+                    className="w-full px-4 py-2.5 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-violet-500/20 cursor-pointer"
                   >
                     <option value="blocked">Full Day Off</option>
                     <option value="available">Custom Hours</option>
@@ -279,7 +279,7 @@ export default function DoctorSchedulePage() {
                     </div>
                     <button
                       onClick={() => handleDeleteException(ex.id)}
-                      className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-muted-foreground hover:text-red-600 transition-colors"
+                      className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-muted-foreground hover:text-red-600 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                       disabled={isDeleting}
                       aria-label="Delete exception"
                     >

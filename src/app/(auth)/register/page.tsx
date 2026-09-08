@@ -156,7 +156,7 @@ export default function RegisterPage() {
           type="button"
           onClick={() => setRole("PATIENT")}
           className={cn(
-            "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
+            "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all cursor-pointer",
             role === "PATIENT"
               ? "border-violet-500 bg-violet-50 dark:bg-violet-950"
               : "border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600"
@@ -180,7 +180,7 @@ export default function RegisterPage() {
           type="button"
           onClick={() => setRole("DOCTOR")}
           className={cn(
-            "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
+            "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all cursor-pointer",
             role === "DOCTOR"
               ? "border-violet-500 bg-violet-50 dark:bg-violet-950"
               : "border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600"
@@ -272,16 +272,16 @@ export default function RegisterPage() {
         <div className="flex items-start gap-2">
           <input
             type="checkbox"
-            className="mt-1 w-4 h-4 rounded border-zinc-300 dark:border-zinc-600 text-violet-600 focus:ring-violet-500"
+            className="mt-1 w-4 h-4 rounded border-zinc-300 dark:border-zinc-600 text-violet-600 focus:ring-violet-500 cursor-pointer"
             required
           />
           <span className="text-sm text-zinc-600 dark:text-zinc-400">
             I agree to the{" "}
-            <Link href="/terms" className="text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300">
+            <Link href="/terms" className="text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300 cursor-pointer">
               Terms of Service
             </Link>{" "}
             and{" "}
-            <Link href="/privacy" className="text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300">
+            <Link href="/privacy" className="text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300 cursor-pointer">
               Privacy Policy
             </Link>
           </span>
@@ -294,7 +294,7 @@ export default function RegisterPage() {
 
       <p className="mt-6 text-center text-sm text-zinc-600 dark:text-zinc-400">
         Already have an account?{" "}
-        <Link href="/login" className="text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300 font-medium">
+        <Link href="/login" className="text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300 font-medium cursor-pointer">
           Sign in
         </Link>
       </p>

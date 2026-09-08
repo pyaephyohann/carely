@@ -110,16 +110,16 @@ export default function LoginPage() {
         />
 
         <div className="flex items-center justify-between">
-          <label className="flex items-center gap-2">
+          <label className="flex items-center gap-2 cursor-pointer">
             <input
               type="checkbox"
-              className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-600 text-violet-600 focus:ring-violet-500"
+              className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-600 text-violet-600 focus:ring-violet-500 cursor-pointer"
             />
             <span className="text-sm text-zinc-600 dark:text-zinc-400">Remember me</span>
           </label>
           <Link
             href="/forgot-password"
-            className="text-sm text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300"
+            className="text-sm text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300 cursor-pointer"
           >
             Forgot password?
           </Link>
@@ -132,7 +132,7 @@ export default function LoginPage() {
 
       <p className="mt-6 text-center text-sm text-zinc-600 dark:text-zinc-400">
         Don&apos;t have an account?{" "}
-        <Link href="/register" className="text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300 font-medium">
+        <Link href="/register" className="text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300 font-medium cursor-pointer">
           Sign up
         </Link>
       </p>

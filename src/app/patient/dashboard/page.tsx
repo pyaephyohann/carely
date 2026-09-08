@@ -148,7 +148,7 @@ export default function PatientDashboard() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-foreground">Upcoming Appointments</h2>
               {upcomingAppointments.length > 0 && (
-                <Link href="/patient/appointments" className="text-sm text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300">
+                <Link href="/patient/appointments" className="text-sm text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300 cursor-pointer">
                   View all
                 </Link>
               )}

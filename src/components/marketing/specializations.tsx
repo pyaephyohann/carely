@@ -62,7 +62,7 @@ export function Specializations() {
             >
               <Link
                 href={`/patient/doctors?specialization=${spec.slug}`}
-                className="group block bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 p-5 hover:border-violet-200 dark:hover:border-violet-800 hover:shadow-md transition-all duration-200"
+                className="group block bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 p-5 hover:border-violet-200 dark:hover:border-violet-800 hover:shadow-md transition-all duration-200 cursor-pointer"
               >
                 <div className="w-12 h-12 bg-violet-50 text-violet-600 rounded-xl flex items-center justify-center mb-4 group-hover:bg-violet-100 dark:bg-violet-950 dark:text-violet-400 dark:group-hover:bg-violet-900 transition-colors">
                   {spec.icon}

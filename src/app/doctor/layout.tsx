@@ -76,7 +76,7 @@ export default function DoctorLayout({
         className="hidden md:flex h-screen flex-col sticky top-0 bg-card border-r border-border"
       >
         <div className="h-16 flex items-center px-4 border-b border-border">
-          <Link href="/" className="flex items-center gap-2 overflow-hidden">
+          <Link href="/" className="flex items-center gap-2 overflow-hidden cursor-pointer">
             <div className="flex items-center justify-center w-8 h-8 bg-violet-600 rounded-lg flex-shrink-0">
               <Heart className="h-5 w-5 text-white" fill="currentColor" />
             </div>
@@ -100,7 +100,7 @@ export default function DoctorLayout({
                 key={item.href}
                 href={item.disabled ? "#" : item.href}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer",
                   item.disabled
                     ? "text-zinc-400 dark:text-zinc-600 cursor-not-allowed"
                     : isActive
@@ -136,7 +136,7 @@ export default function DoctorLayout({
             </AnimatePresence>
             <button
               onClick={() => setCollapsed(!collapsed)}
-              className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors flex-shrink-0"
+              className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300 transition-colors flex-shrink-0 cursor-pointer"
               aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
               <ChevronLeft className={cn("h-4 w-4 transition-transform", collapsed && "rotate-180")} />
@@ -158,7 +158,7 @@ export default function DoctorLayout({
               className="fixed inset-y-0 left-0 w-72 bg-card border-r border-border z-50 md:hidden flex flex-col"
             >
               <div className="h-16 flex items-center justify-between px-4 border-b border-border">
-                <Link href="/" className="flex items-center gap-2">
+                <Link href="/" className="flex items-center gap-2 cursor-pointer">
                   <div className="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center"><Heart className="h-5 w-5 text-white" fill="currentColor" /></div>
                   <span className="text-lg font-bold text-foreground">Carely</span>
                 </Link>
@@ -179,7 +179,7 @@ export default function DoctorLayout({
                       onClick={() => !item.disabled && setMobileOpen(false)}
                       className={cn(
                         "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-                        item.disabled ? "text-zinc-400 dark:text-zinc-600 cursor-not-allowed" : isActive ? "bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-400" : "text-zinc-600 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:bg-zinc-800",
+                        item.disabled ? "text-zinc-400 dark:text-zinc-600 cursor-not-allowed" : isActive ? "bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-400 cursor-pointer" : "text-zinc-600 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:bg-zinc-800 cursor-pointer",
                       )}
                     >
                       <Icon className="h-5 w-5" />
@@ -220,7 +220,7 @@ export default function DoctorLayout({
           <button onClick={() => setMobileOpen(true)} className="p-2 -ml-2 rounded-lg text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800 cursor-pointer" aria-label="Open menu">
             <Menu className="h-5 w-5" />
           </button>
-          <Link href="/" className="flex items-center gap-1.5">
+          <Link href="/" className="flex items-center gap-1.5 cursor-pointer">
             <div className="w-6 h-6 bg-violet-600 rounded-md flex items-center justify-center"><Heart className="h-3.5 w-3.5 text-white" fill="currentColor" /></div>
             <span className="font-bold text-foreground text-sm">Carely</span>
           </Link>

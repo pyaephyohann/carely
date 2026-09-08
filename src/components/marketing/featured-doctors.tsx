@@ -33,7 +33,7 @@ export function FeaturedDoctors() {
               Highly rated professionals ready to help you.
             </p>
           </div>
-          <Link href="/patient/doctors" className="shrink-0">
+          <Link href="/patient/doctors" className="shrink-0 cursor-pointer">
             <Button variant="outline" size="md">
               View all doctors
               <ArrowRight className="h-4 w-4" />
@@ -52,7 +52,7 @@ export function FeaturedDoctors() {
             >
               <Link
                 href="/patient/doctors"
-                className="group block bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 p-5 hover:border-violet-200 dark:hover:border-violet-800 hover:shadow-md transition-all duration-200"
+                className="group block bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 p-5 hover:border-violet-200 dark:hover:border-violet-800 hover:shadow-md transition-all duration-200 cursor-pointer"
               >
                 <div className="flex items-start gap-3 mb-4">
                   <Avatar firstName={doctor.firstName} lastName={doctor.lastName} size="lg" />

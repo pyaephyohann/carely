@@ -166,7 +166,7 @@ export default function PharmacyInventoryPage() {
                             setAddQuery(med.name);
                             setShowMedicineSearch(false);
                           }}
-                          className="w-full text-left px-4 py-2.5 hover:bg-muted/50 transition-colors border-b border-border last:border-0"
+                          className="w-full text-left px-4 py-2.5 hover:bg-muted/50 transition-colors border-b border-border last:border-0 cursor-pointer"
                         >
                           <p className="text-sm font-medium text-foreground">{med.name}</p>
                           {med.genericName && (
@@ -358,7 +358,7 @@ export default function PharmacyInventoryPage() {
                                 <select
                                   value={adjustType}
                                   onChange={(e) => setAdjustType(e.target.value as typeof adjustType)}
-                                  className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-violet-500/20"
+                                  className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-violet-500/20 cursor-pointer"
                                 >
                                   <option value="PURCHASE">Purchase (Add)</option>
                                   <option value="RETURN">Return (Add)</option>

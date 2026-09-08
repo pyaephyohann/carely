@@ -166,7 +166,7 @@ export function NotificationCenter() {
               {unreadCount > 0 && (
                 <button
                   onClick={handleMarkAllRead}
-                  className="text-xs text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 font-medium flex items-center gap-1"
+                  className="text-xs text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 font-medium flex items-center gap-1 cursor-pointer"
                 >
                   <CheckCheck className="h-3.5 w-3.5" />
                   Mark all read
@@ -235,7 +235,7 @@ export function NotificationCenter() {
                   setIsOpen(false);
                   // Navigate to a notifications page if one exists
                 }}
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
               >
                 View all notifications
               </button>

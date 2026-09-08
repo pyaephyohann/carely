@@ -58,7 +58,7 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ user
       {/* Back Link */}
       <Link
         href="/admin/users"
-        className="inline-flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+        className="inline-flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 cursor-pointer"
       >
         <ArrowLeft className="h-4 w-4" /> Back to Users
       </Link>

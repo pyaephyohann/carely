@@ -53,7 +53,7 @@ export default function AdminPharmaciesPage() {
         <select
           value={verifiedFilter}
           onChange={(e) => { setVerifiedFilter(e.target.value); setPage(1); }}
-          className="px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-violet-500"
+          className="px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-violet-500 cursor-pointer"
         >
           <option value="">All Status</option>
           <option value="true">Verified</option>
@@ -131,7 +131,7 @@ export default function AdminPharmaciesPage() {
                   <div className="flex items-center gap-2">
                     <Link
                       href={`/admin/pharmacies/${pharmacy.id}`}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 border border-zinc-200 dark:border-zinc-700 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 border border-zinc-200 dark:border-zinc-700 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
                     >
                       <Eye className="h-3.5 w-3.5" /> Details
                     </Link>

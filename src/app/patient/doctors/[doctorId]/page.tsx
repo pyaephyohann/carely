@@ -70,7 +70,7 @@ export default function DoctorProfilePage() {
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Back Navigation */}
       <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.2 }}>
-        <Link href="/patient/doctors" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <Link href="/patient/doctors" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
           <ArrowLeft className="h-4 w-4" />
           Back to Doctors
         </Link>
@@ -158,7 +158,7 @@ export default function DoctorProfilePage() {
                       </h2>
                       <button
                         onClick={() => setShowBooking(false)}
-                        className="p-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                        className="p-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
                         aria-label="Close booking"
                       >
                         <X className="h-5 w-5 text-muted-foreground" />
