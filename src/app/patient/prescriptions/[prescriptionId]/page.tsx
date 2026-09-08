@@ -12,6 +12,7 @@ import {
   Phone,
   User,
   Info,
+  RefreshCw,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -31,7 +32,10 @@ export default function PatientPrescriptionDetailPage() {
   const router = useRouter();
   const prescriptionId = params.prescriptionId as string;
 
-  const { data, isLoading, error } = useGetPatientPrescriptionQuery(prescriptionId);
+  const { data, isLoading, error, refetch, isFetching } = useGetPatientPrescriptionQuery(
+    prescriptionId,
+    { refetchOnFocus: true },
+  );
 
   const prescription = data?.data;
 
@@ -69,7 +73,7 @@ export default function PatientPrescriptionDetailPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
+      <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="flex items-center justify-between gap-2">
         <Link
           href="/patient/prescriptions"
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
@@ -77,6 +81,16 @@ export default function PatientPrescriptionDetailPage() {
           <ArrowLeft className="h-4 w-4" />
           Back to Prescriptions
         </Link>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => refetch()}
+          disabled={isFetching}
+          aria-label="Refresh prescription"
+          className="cursor-pointer"
+        >
+          <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
+        </Button>
       </motion.div>
 
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>

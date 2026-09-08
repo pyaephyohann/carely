@@ -87,12 +87,17 @@ export default function AppointmentDetailPage() {
           action={
             <div className="flex flex-wrap gap-2 justify-center">
               {!isNotFound && (
-                <Button variant="outline" onClick={() => refetch()}>
-                  <RefreshCw className="h-4 w-4" />
+                <Button
+                  variant="outline"
+                  onClick={() => refetch()}
+                  disabled={isFetching}
+                  className="cursor-pointer"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
                   Retry
                 </Button>
               )}
-              <Button onClick={() => router.push("/patient/appointments")}>
+              <Button onClick={() => router.push("/patient/appointments")} className="cursor-pointer">
                 Back to Appointments
               </Button>
             </div>
@@ -138,6 +143,7 @@ export default function AppointmentDetailPage() {
           onClick={() => refetch()}
           disabled={isFetching}
           aria-label="Refresh appointment"
+          className="cursor-pointer"
         >
           <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
         </Button>

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Stethoscope, Calendar, FileText, ClipboardList, ArrowRight, Clock, MapPin, Video } from "lucide-react";
+import { Stethoscope, Calendar, FileText, ClipboardList, ArrowRight, Clock, MapPin, Video, RefreshCw, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useGetPatientAppointmentsQuery } from "@/store/api/appointmentApi";
 import { getStatusLabel, getStatusVariant } from "@/lib/appointment-utils";
 import { EmptyState } from "@/components/features/patient/empty-state";
+import { cn } from "@/utils/cn";
 
 const greeting = () => {
   const hour = new Date().getHours();
@@ -54,21 +55,66 @@ export default function PatientDashboard() {
   const { user } = useAuth();
   const firstName = (user?.profile as Record<string, string>)?.firstName || "there";
 
-  const { data: appointmentsData, isLoading: isLoadingAppointments } = useGetPatientAppointmentsQuery({
-    filter: "upcoming",
-    limit: 3,
-  });
+  const {
+    data: appointmentsData,
+    isLoading: isLoadingAppointments,
+    error,
+    refetch,
+    isFetching,
+  } = useGetPatientAppointmentsQuery(
+    { filter: "upcoming", limit: 3 },
+    { refetchOnFocus: true },
+  );
 
   const upcomingAppointments = appointmentsData?.data || [];
+
+  if (error) {
+    return (
+      <div className="max-w-7xl mx-auto">
+        <Card>
+          <CardContent className="p-8">
+            <EmptyState
+              icon={<AlertCircle className="h-8 w-8 text-red-500" />}
+              title="Couldn't load dashboard"
+              description="Your session is fine — we couldn't load your dashboard data. Please try again."
+              action={
+                <Button variant="outline" onClick={() => refetch()} className="cursor-pointer">
+                  <RefreshCw className="h-4 w-4" />
+                  Try Again
+                </Button>
+              }
+            />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto space-y-8">
       {/* Greeting */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-          {greeting()}, {firstName}
-        </h1>
-        <p className="text-muted-foreground mt-1">How can we help with your healthcare today?</p>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3"
+      >
+        <div className="min-w-0">
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+            {greeting()}, {firstName}
+          </h1>
+          <p className="text-muted-foreground mt-1">How can we help with your healthcare today?</p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => refetch()}
+          disabled={isFetching}
+          className="self-start cursor-pointer"
+        >
+          <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
+          Refresh
+        </Button>
       </motion.div>
 
       {/* Quick Actions */}

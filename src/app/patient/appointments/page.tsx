@@ -224,6 +224,12 @@ export default function AppointmentsPage() {
   const appointments = listQuery.data?.data || [];
   const meta = listQuery.data?.meta;
   const nextAppointment = nextQuery.data?.data?.[0] || null;
+  const isRefreshing = listQuery.isFetching || nextQuery.isFetching;
+
+  const handleRefresh = () => {
+    void listQuery.refetch();
+    void nextQuery.refetch();
+  };
 
   const handleCancel = async (appointmentId: string) => {
     setCancelError(null);
@@ -250,12 +256,24 @@ export default function AppointmentsPage() {
             Manage upcoming visits, pending requests, and past care.
           </p>
         </div>
-        <Link href="/patient/doctors" className="self-start">
-          <Button>
-            <Stethoscope className="h-4 w-4" />
-            Find a Doctor
+        <div className="flex items-center gap-2 self-start flex-wrap">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="cursor-pointer"
+          >
+            <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
+            Refresh
           </Button>
-        </Link>
+          <Link href="/patient/doctors">
+            <Button className="cursor-pointer">
+              <Stethoscope className="h-4 w-4" />
+              Find a Doctor
+            </Button>
+          </Link>
+        </div>
       </motion.div>
 
       {/* Next / nearest upcoming */}
@@ -382,8 +400,13 @@ export default function AppointmentsPage() {
               title="Unable to load your appointments"
               description="Your session is fine — we couldn't load appointment data. Please try again."
               action={
-                <Button variant="outline" onClick={() => listQuery.refetch()}>
-                  <RefreshCw className="h-4 w-4" />
+                <Button
+                  variant="outline"
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
+                  className="cursor-pointer"
+                >
+                  <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
                   Retry
                 </Button>
               }
@@ -447,6 +470,10 @@ export default function AppointmentsPage() {
 
           {meta && meta.totalPages > 1 && (
             <Pagination page={meta.page} totalPages={meta.totalPages} onPageChange={setPage} />
+          )}
+
+          {isRefreshing && !listQuery.isLoading && (
+            <p className="text-xs text-center text-muted-foreground">Updating appointments…</p>
           )}
         </>
       )}

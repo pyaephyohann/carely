@@ -59,12 +59,24 @@ export default function PrescriptionsPage() {
             Your prescriptions and medication instructions from your doctors
           </p>
         </div>
-        <Link href="/patient/doctors" className="self-start">
-          <Button variant="outline" className="cursor-pointer">
-            <Stethoscope className="h-4 w-4" />
-            Find a Doctor
+        <div className="flex items-center gap-2 self-start flex-wrap">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            disabled={isFetching}
+            className="cursor-pointer"
+          >
+            <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
+            Refresh
           </Button>
-        </Link>
+          <Link href="/patient/doctors">
+            <Button variant="outline" className="cursor-pointer">
+              <Stethoscope className="h-4 w-4" />
+              Find a Doctor
+            </Button>
+          </Link>
+        </div>
       </motion.div>
 
       <div className="flex gap-1 bg-muted p-1 rounded-lg w-full sm:w-fit overflow-x-auto">
@@ -96,8 +108,13 @@ export default function PrescriptionsPage() {
               title="Unable to load your prescriptions"
               description="Something went wrong while loading your prescriptions. Your session may still be valid."
               action={
-                <Button variant="outline" onClick={() => refetch()} className="cursor-pointer">
-                  <RefreshCw className="h-4 w-4" />
+                <Button
+                  variant="outline"
+                  onClick={() => refetch()}
+                  disabled={isFetching}
+                  className="cursor-pointer"
+                >
+                  <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
                   Retry
                 </Button>
               }

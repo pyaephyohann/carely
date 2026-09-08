@@ -10,6 +10,7 @@ import {
   FileText,
   Phone,
   Stethoscope,
+  RefreshCw,
   Info,
 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -48,7 +49,10 @@ export default function PatientMedicalRecordDetailPage() {
   const router = useRouter();
   const recordId = params.recordId as string;
 
-  const { data, isLoading, error } = useGetPatientMedicalRecordQuery(recordId);
+  const { data, isLoading, error, refetch, isFetching } = useGetPatientMedicalRecordQuery(
+    recordId,
+    { refetchOnFocus: true },
+  );
 
   const record = data?.data;
 
@@ -93,7 +97,7 @@ export default function PatientMedicalRecordDetailPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
+      <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="flex items-center justify-between gap-2">
         <Link
           href="/patient/records"
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
@@ -101,6 +105,16 @@ export default function PatientMedicalRecordDetailPage() {
           <ArrowLeft className="h-4 w-4" />
           Back to Medical Records
         </Link>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => refetch()}
+          disabled={isFetching}
+          aria-label="Refresh medical record"
+          className="cursor-pointer"
+        >
+          <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
+        </Button>
       </motion.div>
 
       <motion.div
