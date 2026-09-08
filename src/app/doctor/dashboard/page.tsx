@@ -26,6 +26,7 @@ import {
   useUpdateAppointmentStatusMutation,
   type DashboardAppointment,
 } from "@/store/api/appointmentApi";
+import { useDoctorAppointmentNavigation } from "@/hooks/useDoctorAppointmentNavigation";
 import { getStatusLabel, getStatusVariant, getValidTransitions, DOCTOR_REJECT_REASON } from "@/lib/appointment-utils";
 import { formatDate, formatDateTime, formatRelativeDate } from "@/utils/date";
 import { cn } from "@/utils/cn";
@@ -65,16 +66,20 @@ function AppointmentActions({
   updatingId: string | null;
   onStatusUpdate: (id: string, status: string, cancelReason?: string) => void;
 }) {
+  const { goToAppointmentDetail } = useDoctorAppointmentNavigation();
   const transitions = getValidTransitions(appointment.status);
   const busy = updatingId === appointment.id;
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Link href={`/doctor/appointments/${appointment.id}`}>
-        <Button variant="outline" size="sm">
-          View
-        </Button>
-      </Link>
+      <Button
+        variant="outline"
+        size="sm"
+        className="cursor-pointer"
+        onClick={() => goToAppointmentDetail(appointment.id)}
+      >
+        View
+      </Button>
       {transitions.includes("CONFIRMED") && (
         <Button
           size="sm"

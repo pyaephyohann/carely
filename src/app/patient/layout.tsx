@@ -146,7 +146,7 @@ export default function PatientLayout({
 
         {/* User & Collapse */}
         <div className="px-3 py-4 border-t border-border">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 mb-3">
             <Avatar firstName={firstName} lastName={lastName} size="sm" />
             <AnimatePresence>
               {!collapsed && (
@@ -173,6 +173,23 @@ export default function PatientLayout({
               />
             </button>
           </div>
+          <Button
+            variant="ghost"
+            className={cn(
+              "w-full text-zinc-500 cursor-pointer",
+              collapsed ? "justify-center px-2" : "justify-start",
+            )}
+            disabled={isLoggingOut}
+            isLoading={isLoggingOut}
+            onClick={() => {
+              void logoutUser();
+            }}
+            aria-label="Sign Out"
+            title="Sign Out"
+          >
+            <LogOut className="h-4 w-4" />
+            {!collapsed && "Sign Out"}
+          </Button>
         </div>
       </motion.aside>
 

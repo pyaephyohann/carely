@@ -177,3 +177,101 @@ export function getFutureDateStr(days: number): string {
 export function getNextNDays(n: number): string[] {
   return Array.from({ length: n }, (_, i) => getFutureDateStr(i));
 }
+
+// =============================================================================
+// RTK Query / fetch error presentation (appointment detail pages)
+// =============================================================================
+
+export type AppointmentDetailErrorKind =
+  | "missing_id"
+  | "not_found"
+  | "unauthorized"
+  | "forbidden"
+  | "server"
+  | "network"
+  | "unknown";
+
+export interface AppointmentDetailErrorPresentation {
+  kind: AppointmentDetailErrorKind;
+  title: string;
+  description: string;
+  canRetry: boolean;
+}
+
+export function getFetchErrorStatus(error: unknown): number | string | undefined {
+  if (typeof error === "object" && error !== null && "status" in error) {
+    return (error as { status?: number | string }).status;
+  }
+  return undefined;
+}
+
+export function getAppointmentDetailErrorPresentation(
+  error: unknown,
+  appointmentId?: string,
+): AppointmentDetailErrorPresentation | null {
+  if (!appointmentId) {
+    return {
+      kind: "missing_id",
+      title: "Invalid appointment link",
+      description:
+        "The appointment ID is missing from this URL. Return to the appointments list and open an appointment again.",
+      canRetry: false,
+    };
+  }
+
+  if (!error) return null;
+
+  const status = getFetchErrorStatus(error);
+
+  if (status === 404) {
+    return {
+      kind: "not_found",
+      title: "Appointment not found",
+      description: "This appointment doesn't exist or you don't have access.",
+      canRetry: false,
+    };
+  }
+
+  if (status === 401) {
+    return {
+      kind: "unauthorized",
+      title: "Session expired",
+      description: "Please sign in again to view this appointment.",
+      canRetry: false,
+    };
+  }
+
+  if (status === 403) {
+    return {
+      kind: "forbidden",
+      title: "Access denied",
+      description: "You don't have permission to view this appointment.",
+      canRetry: false,
+    };
+  }
+
+  if (status === "FETCH_ERROR") {
+    return {
+      kind: "network",
+      title: "Connection problem",
+      description: "Could not reach the server. Check your connection and try again.",
+      canRetry: true,
+    };
+  }
+
+  if (typeof status === "number" && status >= 500) {
+    return {
+      kind: "server",
+      title: "Server error",
+      description: "Something went wrong on our end. Please try again in a moment.",
+      canRetry: true,
+    };
+  }
+
+  return {
+    kind: "unknown",
+    title: "Unable to load appointment",
+    description: "Something went wrong while loading this appointment.",
+    canRetry: true,
+  };
+}

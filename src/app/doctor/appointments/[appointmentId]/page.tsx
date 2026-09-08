@@ -39,6 +39,7 @@ import {
   getDurationMinutes,
   formatDuration,
   DOCTOR_REJECT_REASON,
+  getAppointmentDetailErrorPresentation,
 } from "@/lib/appointment-utils";
 import {
   getPrescriptionStatusLabel,
@@ -56,16 +57,43 @@ export default function DoctorAppointmentDetailPage() {
   const [showConsultation, setShowConsultation] = useState(false);
   const [showPrescriptionForm, setShowPrescriptionForm] = useState(false);
 
-  const { data, isLoading, error, refetch, isFetching } =
+  const { data, isLoading, isFetching, isError, error, refetch } =
     useGetDoctorAppointmentDetailQuery(appointmentId ?? "", {
       skip: !appointmentId,
       refetchOnFocus: true,
+      refetchOnMountOrArgChange: true,
     });
   const [updateStatus, { isLoading: isUpdating }] = useUpdateAppointmentStatusMutation();
 
   const appointment = data?.data;
 
-  if (!appointmentId || isLoading) {
+  if (!appointmentId) {
+    const missingId = getAppointmentDetailErrorPresentation(null, appointmentId);
+    return (
+      <div className="max-w-2xl mx-auto">
+        <EmptyState
+          icon={<AlertCircle className="h-8 w-8 text-red-500" />}
+          title={missingId?.title ?? "Invalid appointment link"}
+          description={
+            missingId?.description ??
+            "The appointment ID is missing from this URL."
+          }
+          action={
+            <Button
+              onClick={() => router.push("/doctor/appointments")}
+              className="cursor-pointer"
+            >
+              Back to Appointments
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
+
+  const isResolving = isLoading || (isFetching && !appointment && !isError);
+
+  if (isResolving) {
     return (
       <div className="max-w-2xl mx-auto space-y-6">
         <Skeleton className="h-4 w-32" />
@@ -79,26 +107,20 @@ export default function DoctorAppointmentDetailPage() {
     );
   }
 
-  if (error || !appointment) {
-    const isNotFound =
-      typeof error === "object" &&
-      error !== null &&
-      "status" in error &&
-      (error as { status?: number }).status === 404;
+  if (isError || !appointment) {
+    const errorPresentation =
+      getAppointmentDetailErrorPresentation(isError ? error : { status: 404 }, appointmentId) ??
+      getAppointmentDetailErrorPresentation({ status: 404 }, appointmentId)!;
 
     return (
       <div className="max-w-2xl mx-auto">
         <EmptyState
           icon={<AlertCircle className="h-8 w-8 text-red-500" />}
-          title={isNotFound ? "Appointment not found" : "Unable to load appointment"}
-          description={
-            isNotFound
-              ? "This appointment doesn't exist or you don't have access."
-              : "Something went wrong while loading this appointment. Your session may still be valid."
-          }
+          title={errorPresentation.title}
+          description={errorPresentation.description}
           action={
             <div className="flex flex-wrap gap-2 justify-center">
-              {!isNotFound && (
+              {errorPresentation.canRetry && (
                 <Button
                   variant="outline"
                   onClick={() => refetch()}

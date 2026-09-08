@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Calendar, Clock, Video, MapPin, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/features/patient/empty-state";
 import { Pagination } from "@/components/features/patient/pagination";
 import { useGetDoctorAppointmentsQuery, useUpdateAppointmentStatusMutation } from "@/store/api/appointmentApi";
+import { useDoctorAppointmentNavigation } from "@/hooks/useDoctorAppointmentNavigation";
 import { getStatusLabel, getStatusVariant, getValidTransitions, DOCTOR_REJECT_REASON } from "@/lib/appointment-utils";
 import { cn } from "@/utils/cn";
 
@@ -26,8 +26,8 @@ const FILTERS = [
 type FilterValue = (typeof FILTERS)[number]["value"];
 
 export default function DoctorAppointmentsPage() {
-  const router = useRouter();
-  const [filter, setFilter] = useState<FilterValue>("pending");
+  const { goToAppointmentDetail } = useDoctorAppointmentNavigation();
+  const [filter, setFilter] = useState<FilterValue>("upcoming");
   const [page, setPage] = useState(1);
   const [statusUpdateId, setStatusUpdateId] = useState<string | null>(null);
 
@@ -85,7 +85,41 @@ export default function DoctorAppointmentsPage() {
           ))}
         </div>
       ) : appointments.length === 0 ? (
-        <Card><CardContent className="p-8"><EmptyState icon={<Calendar className="h-8 w-8" />} title={filter === "today" ? "No appointments today" : filter === "pending" ? "No pending requests" : "No appointments"} description={filter === "pending" ? "New patient booking requests will appear here for you to accept or decline." : filter === "today" ? "You have no appointments scheduled for today." : "Your appointments will appear here."} /></CardContent></Card>
+        <Card>
+          <CardContent className="p-8">
+            <EmptyState
+              icon={<Calendar className="h-8 w-8" />}
+              title={
+                filter === "today"
+                  ? "No appointments today"
+                  : filter === "pending"
+                    ? "No pending requests"
+                    : "No appointments"
+              }
+              description={
+                filter === "pending"
+                  ? "New patient booking requests will appear here for you to accept or decline."
+                  : filter === "today"
+                    ? "You have no appointments scheduled for today."
+                    : "Your appointments will appear here."
+              }
+              action={
+                filter === "pending" ? (
+                  <Button
+                    variant="outline"
+                    className="cursor-pointer"
+                    onClick={() => {
+                      setFilter("upcoming");
+                      setPage(1);
+                    }}
+                  >
+                    View upcoming appointments
+                  </Button>
+                ) : undefined
+              }
+            />
+          </CardContent>
+        </Card>
       ) : (
         <>
           <div className="space-y-3">
@@ -124,7 +158,7 @@ export default function DoctorAppointmentsPage() {
                               variant="outline"
                               size="sm"
                               className="cursor-pointer"
-                              onClick={() => router.push(`/doctor/appointments/${appt.id}`)}
+                              onClick={() => goToAppointmentDetail(appt.id)}
                             >
                               View Details
                             </Button>
