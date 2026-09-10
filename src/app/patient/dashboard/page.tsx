@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useGetPatientAppointmentsQuery } from "@/store/api/appointmentApi";
 import { getStatusLabel, getStatusVariant } from "@/lib/appointment-utils";
 import { EmptyState } from "@/components/features/patient/empty-state";
+import { NavbarRefresh } from "@/components/layout/navbar-refresh";
 import { cn } from "@/utils/cn";
 
 const greeting = () => {
@@ -105,16 +106,18 @@ export default function PatientDashboard() {
           </h1>
           <p className="text-muted-foreground mt-1">How can we help with your healthcare today?</p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => refetch()}
-          disabled={isFetching}
-          className="self-start cursor-pointer"
-        >
-          <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
-          Refresh
-        </Button>
+        <NavbarRefresh>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            disabled={isFetching}
+            className="self-start cursor-pointer"
+          >
+            <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
+            Refresh
+          </Button>
+        </NavbarRefresh>
       </motion.div>
 
       {/* Quick Actions */}

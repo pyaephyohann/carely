@@ -24,6 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/features/patient/empty-state";
+import { NavbarRefresh } from "@/components/layout/navbar-refresh";
 import { useGetDoctorPatientDetailQuery } from "@/store/api/doctorPatientApi";
 import { getStatusLabel, getStatusVariant } from "@/lib/appointment-utils";
 import {
@@ -126,16 +127,18 @@ export default function DoctorPatientDetailPage() {
           <ArrowLeft className="h-4 w-4" />
           Back to Patients
         </Link>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => refetch()}
-          disabled={isFetching}
-          className="cursor-pointer"
-          aria-label="Refresh patient details"
-        >
-          <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
-        </Button>
+        <NavbarRefresh>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => refetch()}
+            disabled={isFetching}
+            className="cursor-pointer"
+            aria-label="Refresh patient details"
+          >
+            <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
+          </Button>
+        </NavbarRefresh>
       </motion.div>
 
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>

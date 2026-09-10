@@ -20,6 +20,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/features/patient/empty-state";
 import { Pagination } from "@/components/features/patient/pagination";
+import { NavbarRefresh } from "@/components/layout/navbar-refresh";
 import {
   useGetPatientAppointmentsQuery,
   useCancelPatientAppointmentMutation,
@@ -257,16 +258,18 @@ export default function AppointmentsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2 self-start flex-wrap">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            className="cursor-pointer"
-          >
-            <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
-            Refresh
-          </Button>
+          <NavbarRefresh>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="cursor-pointer"
+            >
+              <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
+              Refresh
+            </Button>
+          </NavbarRefresh>
           <Link href="/patient/doctors">
             <Button className="cursor-pointer">
               <Stethoscope className="h-4 w-4" />

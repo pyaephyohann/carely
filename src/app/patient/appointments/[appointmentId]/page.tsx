@@ -24,6 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/features/patient/empty-state";
+import { NavbarRefresh } from "@/components/layout/navbar-refresh";
 import {
   useGetPatientAppointmentDetailQuery,
   useCancelPatientAppointmentMutation,
@@ -137,16 +138,18 @@ export default function AppointmentDetailPage() {
           <ArrowLeft className="h-4 w-4" />
           Back to Appointments
         </Link>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => refetch()}
-          disabled={isFetching}
-          aria-label="Refresh appointment"
-          className="cursor-pointer"
-        >
-          <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
-        </Button>
+        <NavbarRefresh>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => refetch()}
+            disabled={isFetching}
+            aria-label="Refresh appointment"
+            className="cursor-pointer"
+          >
+            <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
+          </Button>
+        </NavbarRefresh>
       </motion.div>
 
       <motion.div

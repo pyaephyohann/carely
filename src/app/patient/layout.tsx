@@ -24,6 +24,10 @@ import { useLogout } from "@/hooks/useLogout";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ThemeSwitcher } from "@/components/theme";
+import {
+  NavbarRefreshProvider,
+  NavbarRefreshSlot,
+} from "@/components/layout/navbar-refresh";
 import { cn } from "@/utils/cn";
 
 const navItems: {
@@ -72,6 +76,7 @@ export default function PatientLayout({
   const lastName = (user?.profile as Record<string, string>)?.lastName || "";
 
   return (
+    <NavbarRefreshProvider>
     <div className="flex min-h-screen bg-background">
       {/* Desktop Sidebar */}
       <motion.aside
@@ -173,9 +178,6 @@ export default function PatientLayout({
                 className={cn("h-4 w-4 transition-transform", collapsed && "rotate-180")}
               />
             </button>
-          </div>
-          <div className={cn("mb-2", collapsed ? "flex justify-center" : "")}>
-            <ThemeSwitcher />
           </div>
           <Button
             variant="ghost"
@@ -286,16 +288,16 @@ export default function PatientLayout({
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile Top Bar */}
-        <div className="sticky top-0 z-30 h-14 flex items-center justify-between px-4 border-b border-border bg-card/80 backdrop-blur-md md:hidden">
+        {/* Top Bar */}
+        <div className="sticky top-0 z-30 h-14 flex items-center justify-between md:justify-end gap-2 px-4 md:px-8 border-b border-border bg-card/80 backdrop-blur-md">
           <button
             onClick={() => setMobileOpen(true)}
-            className="p-2 -ml-2 rounded-lg text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800 cursor-pointer"
+            className="p-2 -ml-2 rounded-lg text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800 cursor-pointer md:hidden"
             aria-label="Open menu"
           >
             <Menu className="h-5 w-5" />
           </button>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 md:hidden">
             <Link href="/" className="flex items-center gap-1.5 cursor-pointer">
               <div className="w-6 h-6 bg-violet-600 rounded-md flex items-center justify-center">
                 <Heart className="h-3.5 w-3.5 text-white" fill="currentColor" />
@@ -305,6 +307,7 @@ export default function PatientLayout({
           </div>
           <div className="flex items-center gap-1">
             <ThemeSwitcher />
+            <NavbarRefreshSlot />
             <NotificationCenter />
           </div>
         </div>
@@ -313,5 +316,6 @@ export default function PatientLayout({
         <main className="flex-1 p-4 md:p-8">{children}</main>
       </div>
     </div>
+    </NavbarRefreshProvider>
   );
 }

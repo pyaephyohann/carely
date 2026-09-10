@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/features/patient/empty-state";
 import { Pagination } from "@/components/features/patient/pagination";
+import { NavbarRefresh } from "@/components/layout/navbar-refresh";
 import { useGetPatientPrescriptionsQuery } from "@/store/api/consultationApi";
 import {
   getPrescriptionStatusLabel,
@@ -60,16 +61,18 @@ export default function PrescriptionsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2 self-start flex-wrap">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => refetch()}
-            disabled={isFetching}
-            className="cursor-pointer"
-          >
-            <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
-            Refresh
-          </Button>
+          <NavbarRefresh>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetch()}
+              disabled={isFetching}
+              className="cursor-pointer"
+            >
+              <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
+              Refresh
+            </Button>
+          </NavbarRefresh>
           <Link href="/patient/doctors">
             <Button variant="outline" className="cursor-pointer">
               <Stethoscope className="h-4 w-4" />

@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/features/patient/empty-state";
+import { NavbarRefresh } from "@/components/layout/navbar-refresh";
 import {
   useGetDoctorDashboardQuery,
   useUpdateAppointmentStatusMutation,
@@ -282,16 +283,18 @@ export default function DoctorDashboard() {
             Here&apos;s your practice overview for today.
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => refetch()}
-          disabled={isFetching}
-          className="self-start"
-        >
-          <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
-          Refresh
-        </Button>
+        <NavbarRefresh>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            disabled={isFetching}
+            className="self-start"
+          >
+            <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
+            Refresh
+          </Button>
+        </NavbarRefresh>
       </motion.div>
 
       {/* Stats */}

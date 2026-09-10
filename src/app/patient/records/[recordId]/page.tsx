@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/features/patient/empty-state";
+import { NavbarRefresh } from "@/components/layout/navbar-refresh";
 import { useGetPatientMedicalRecordQuery } from "@/store/api/consultationApi";
 import { getStatusLabel, getStatusVariant } from "@/lib/appointment-utils";
 import {
@@ -105,16 +106,18 @@ export default function PatientMedicalRecordDetailPage() {
           <ArrowLeft className="h-4 w-4" />
           Back to Medical Records
         </Link>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => refetch()}
-          disabled={isFetching}
-          aria-label="Refresh medical record"
-          className="cursor-pointer"
-        >
-          <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
-        </Button>
+        <NavbarRefresh>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => refetch()}
+            disabled={isFetching}
+            aria-label="Refresh medical record"
+            className="cursor-pointer"
+          >
+            <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
+          </Button>
+        </NavbarRefresh>
       </motion.div>
 
       <motion.div

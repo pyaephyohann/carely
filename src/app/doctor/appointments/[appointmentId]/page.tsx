@@ -26,6 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/features/patient/empty-state";
+import { NavbarRefresh } from "@/components/layout/navbar-refresh";
 import { ConsultationForm } from "@/components/features/doctor/consultation-form";
 import { PrescriptionForm } from "@/components/features/doctor/prescription-form";
 import {
@@ -186,16 +187,18 @@ export default function DoctorAppointmentDetailPage() {
           <ArrowLeft className="h-4 w-4" />
           Back to Appointments
         </Link>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => refetch()}
-          disabled={isFetching}
-          className="cursor-pointer"
-          aria-label="Refresh appointment"
-        >
-          <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
-        </Button>
+        <NavbarRefresh>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => refetch()}
+            disabled={isFetching}
+            className="cursor-pointer"
+            aria-label="Refresh appointment"
+          >
+            <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
+          </Button>
+        </NavbarRefresh>
       </motion.div>
 
       <motion.div
