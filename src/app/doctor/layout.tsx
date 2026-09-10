@@ -31,12 +31,17 @@ import {
 } from "@/components/layout/navbar-refresh";
 import { cn } from "@/utils/cn";
 
-const navItems = [
+const navItems: {
+  href: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  disabled?: boolean;
+}[] = [
   { href: "/doctor/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/doctor/appointments", label: "Appointments", icon: Calendar },
   { href: "/doctor/schedule", label: "My Schedule", icon: Settings },
   { href: "/doctor/patients", label: "Patients", icon: Users },
-  { href: "/doctor/consultations", label: "Consultations", icon: Activity, disabled: true },
+  { href: "/doctor/consultations", label: "Consultations", icon: Activity },
   { href: "/doctor/prescriptions", label: "Prescriptions", icon: Pill },
   { href: "/doctor/profile", label: "Profile", icon: UserCircle },
 ];

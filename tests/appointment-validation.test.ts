@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { getConsultationCreateDenial } from "@/lib/consultation-service";
 
 // =============================================================================
 // Appointment Time Validation Tests
@@ -170,30 +171,18 @@ describe("Appointment Reason Validation (BUG-02)", () => {
 // =============================================================================
 
 describe("Consultation Business Rules", () => {
-  // Simulate the consultation validation order from the fixed route handler
-  type AppointmentStatus = "CONFIRMED" | "COMPLETED" | "CANCELLED" | "PENDING" | "IN_PROGRESS" | "NO_SHOW";
-
   function validateConsultationRequest(
-    appointmentStatus: AppointmentStatus,
+    appointmentStatus: string,
     hasExistingConsultation: boolean,
     isDoctorOwner: boolean,
   ): { allowed: boolean; code?: string; httpStatus?: number } {
-    // Step 1: Doctor ownership check
-    if (!isDoctorOwner) {
-      return { allowed: false, code: "FORBIDDEN", httpStatus: 403 };
-    }
-
-    // Step 2: Check if consultation already exists (BUG-07 fix — this fires FIRST)
-    if (hasExistingConsultation) {
-      return { allowed: false, code: "ALREADY_EXISTS", httpStatus: 409 };
-    }
-
-    // Step 3: Validate appointment status
-    if (appointmentStatus !== "CONFIRMED") {
-      return { allowed: false, code: "INVALID_STATUS", httpStatus: 422 };
-    }
-
-    return { allowed: true };
+    const denial = getConsultationCreateDenial({
+      isOwner: isDoctorOwner,
+      hasExistingConsultation,
+      appointmentStatus,
+    });
+    if (!denial) return { allowed: true };
+    return { allowed: false, code: denial.code, httpStatus: denial.httpStatus };
   }
 
   it("allows consultation on CONFIRMED appointment with no existing consultation", () => {
@@ -215,11 +204,9 @@ describe("Consultation Business Rules", () => {
     expect(result.httpStatus).toBe(403);
   });
 
-  it("returns 422 INVALID_STATUS for COMPLETED appointment without existing consultation", () => {
+  it("allows COMPLETED appointment without an existing consultation", () => {
     const result = validateConsultationRequest("COMPLETED", false, true);
-    expect(result.allowed).toBe(false);
-    expect(result.code).toBe("INVALID_STATUS");
-    expect(result.httpStatus).toBe(422);
+    expect(result.allowed).toBe(true);
   });
 
   it("returns 422 INVALID_STATUS for CANCELLED appointment", () => {
@@ -235,8 +222,6 @@ describe("Consultation Business Rules", () => {
   });
 
   it("returns 409 even if appointment is COMPLETED (duplicate check fires first)", () => {
-    // BUG-07: The duplicate check must fire before the status check,
-    // regardless of appointment status.
     const result = validateConsultationRequest("COMPLETED", true, true);
     expect(result.allowed).toBe(false);
     expect(result.code).toBe("ALREADY_EXISTS");
@@ -244,7 +229,6 @@ describe("Consultation Business Rules", () => {
   });
 
   it("only one consultation can exist per appointment", () => {
-    // Simulate: first creates, second is blocked
     const first = validateConsultationRequest("CONFIRMED", false, true);
     expect(first.allowed).toBe(true);
 

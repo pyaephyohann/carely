@@ -47,10 +47,13 @@ import {
   getPrescriptionStatusVariant,
 } from "@/lib/prescription-utils";
 import { isClinicalAppointmentStatus } from "@/lib/prescription-service";
+import { useAppDispatch } from "@/hooks/useRedux";
+import { addToast } from "@/store/slices/uiSlice";
 
 export default function DoctorAppointmentDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const rawAppointmentId = params?.appointmentId;
   const appointmentId = Array.isArray(rawAppointmentId)
     ? rawAppointmentId[0]
@@ -163,9 +166,19 @@ export default function DoctorAppointmentDetailPage() {
     }
   };
 
-  const handleConsultationSuccess = () => {
+  const handleConsultationSuccess = (consultationId: string) => {
     setShowConsultation(false);
-    refetch();
+    dispatch(
+      addToast({
+        type: "success",
+        title: "Consultation saved",
+        message:
+          appointment.status === "CONFIRMED"
+            ? "The appointment is now completed."
+            : "Visit notes were saved.",
+      }),
+    );
+    router.push(`/doctor/consultations/${consultationId}`);
   };
 
   const handlePrescriptionSuccess = () => {
@@ -373,8 +386,8 @@ export default function DoctorAppointmentDetailPage() {
                       onClick={() => setShowConsultation(true)}
                       className="cursor-pointer"
                     >
-                      <FileText className="h-4 w-4" />
-                      Add Visit Notes
+                      <Stethoscope className="h-4 w-4" />
+                      Start Consultation
                     </Button>
                   )}
                   {validTransitions.includes("NO_SHOW") && (
@@ -432,9 +445,16 @@ export default function DoctorAppointmentDetailPage() {
       {consultation && (
         <Card>
           <CardHeader>
-            <div className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-violet-600 dark:text-violet-400" />
-              <h2 className="text-lg font-semibold text-foreground">Consultation Record</h2>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-violet-600 dark:text-violet-400" />
+                <h2 className="text-lg font-semibold text-foreground">Consultation Record</h2>
+              </div>
+              <Link href={`/doctor/consultations/${consultation.id}`}>
+                <Button variant="outline" size="sm" className="cursor-pointer">
+                  View Consultation
+                </Button>
+              </Link>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -546,6 +566,7 @@ export default function DoctorAppointmentDetailPage() {
           <ConsultationForm
             appointmentId={appointment.id}
             patientName={`${appointment.patient.firstName} ${appointment.patient.lastName}`}
+            completeAppointment={appointment.status === "CONFIRMED"}
             onSuccess={handleConsultationSuccess}
             onCancel={() => setShowConsultation(false)}
           />

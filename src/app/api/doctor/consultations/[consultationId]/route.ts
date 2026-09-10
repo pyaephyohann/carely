@@ -42,6 +42,7 @@ export async function GET(
             endTime: true,
             type: true,
             status: true,
+            reason: true,
           },
         },
         patient: {
@@ -89,6 +90,7 @@ export async function GET(
         endTime: consultation.appointment.endTime.toISOString(),
         type: consultation.appointment.type,
         status: consultation.appointment.status,
+        reason: consultation.appointment.reason,
       },
       patient: {
         id: consultation.patient.id,

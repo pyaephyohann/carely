@@ -72,6 +72,7 @@ export const baseApi = createApi({
     "Patient",
     "Appointment",
     "Prescription",
+    "Consultation",
     "Medicine",
     "Notification",
     "Admin",

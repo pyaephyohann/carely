@@ -12,9 +12,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useCreateConsultationMutation } from "@/store/api/consultationApi";
+import { useCreateConsultationMutation, useUpdateConsultationMutation } from "@/store/api/consultationApi";
 import { cn } from "@/utils/cn";
 import type { CreateConsultationRequest } from "@/store/api/consultationApi";
+import { getRtkErrorCode, getRtkErrorMessage } from "@/lib/consultation-service";
 
 interface PrescriptionItemForm {
   rowId: string;
@@ -30,7 +31,14 @@ interface Props {
   patientName: string;
   /** When true, marks appointment COMPLETED after saving visit notes */
   completeAppointment?: boolean;
-  onSuccess?: () => void;
+  consultationId?: string;
+  initialValues?: {
+    diagnosis: string;
+    symptoms: string;
+    notes: string;
+    followUpDate: string;
+  };
+  onSuccess?: (consultationId: string) => void;
   onCancel?: () => void;
 }
 
@@ -53,15 +61,20 @@ export function ConsultationForm({
   appointmentId,
   patientName,
   completeAppointment = false,
+  consultationId,
+  initialValues,
   onSuccess,
   onCancel,
 }: Props) {
+  const isEdit = Boolean(consultationId);
   const [createConsultation, { isLoading: isCreating }] = useCreateConsultationMutation();
+  const [updateConsultation, { isLoading: isUpdating }] = useUpdateConsultationMutation();
+  const isSaving = isCreating || isUpdating;
 
-  const [diagnosis, setDiagnosis] = useState("");
-  const [symptoms, setSymptoms] = useState("");
-  const [notes, setNotes] = useState("");
-  const [followUpDate, setFollowUpDate] = useState("");
+  const [diagnosis, setDiagnosis] = useState(initialValues?.diagnosis ?? "");
+  const [symptoms, setSymptoms] = useState(initialValues?.symptoms ?? "");
+  const [notes, setNotes] = useState(initialValues?.notes ?? "");
+  const [followUpDate, setFollowUpDate] = useState(initialValues?.followUpDate ?? "");
 
   const [addPrescription, setAddPrescription] = useState(false);
   const [prescriptionDiagnosis, setPrescriptionDiagnosis] = useState("");
@@ -107,7 +120,7 @@ export function ConsultationForm({
     if (symptoms && symptoms.length > 2000) return "Symptoms must be 2000 characters or less.";
     if (notes && notes.length > 5000) return "Notes must be 5000 characters or less.";
 
-    if (addPrescription) {
+    if (addPrescription && !isEdit) {
       if (!prescriptionDiagnosis.trim()) return "Prescription diagnosis is required.";
       if (prescriptionItems.length === 0) return "Add at least one medicine to the prescription.";
       for (let i = 0; i < prescriptionItems.length; i++) {
@@ -130,34 +143,63 @@ export function ConsultationForm({
       return;
     }
 
-    const payload: CreateConsultationRequest = {
-      appointmentId,
-      diagnosis: diagnosis.trim(),
-      symptoms: symptoms.trim() || undefined,
-      notes: notes.trim() || undefined,
-      followUpDate: followUpDate || undefined,
-      completeAppointment,
-    };
-
-    if (addPrescription && prescriptionItems.length > 0) {
-      payload.prescription = {
-        diagnosis: prescriptionDiagnosis.trim(),
-        notes: prescriptionNotes.trim() || undefined,
-        validUntil: validUntil || undefined,
-        items: prescriptionItems.map((item) => ({
-          medicineName: item.medicineName.trim(),
-          dosage: item.dosage.trim(),
-          frequency: item.frequency.trim(),
-          duration: item.duration.trim(),
-          instructions: item.instructions.trim() || undefined,
-        })),
-      };
-    }
-
     try {
-      await createConsultation(payload).unwrap();
-      onSuccess?.();
-    } catch {
+      if (isEdit && consultationId) {
+        await updateConsultation({
+          consultationId,
+          diagnosis: diagnosis.trim(),
+          symptoms: symptoms.trim() || undefined,
+          notes: notes.trim() || undefined,
+          followUpDate: followUpDate || undefined,
+        }).unwrap();
+        onSuccess?.(consultationId);
+        return;
+      }
+
+      const payload: CreateConsultationRequest = {
+        appointmentId,
+        diagnosis: diagnosis.trim(),
+        symptoms: symptoms.trim() || undefined,
+        notes: notes.trim() || undefined,
+        followUpDate: followUpDate || undefined,
+        completeAppointment,
+      };
+
+      if (addPrescription && prescriptionItems.length > 0) {
+        payload.prescription = {
+          diagnosis: prescriptionDiagnosis.trim(),
+          notes: prescriptionNotes.trim() || undefined,
+          validUntil: validUntil || undefined,
+          items: prescriptionItems.map((item) => ({
+            medicineName: item.medicineName.trim(),
+            dosage: item.dosage.trim(),
+            frequency: item.frequency.trim(),
+            duration: item.duration.trim(),
+            instructions: item.instructions.trim() || undefined,
+          })),
+        };
+      }
+
+      const result = await createConsultation(payload).unwrap();
+      onSuccess?.(result.data.consultation.id);
+    } catch (err) {
+      const code = getRtkErrorCode(err);
+      if (code === "ALREADY_EXISTS") {
+        setFormError("A consultation already exists for this appointment.");
+        return;
+      }
+      if (code === "INVALID_STATUS") {
+        setFormError("This appointment is not eligible for a consultation.");
+        return;
+      }
+      if (code === "FORBIDDEN") {
+        setFormError("You can only create consultations for your own appointments.");
+        return;
+      }
+      if (code === "VALIDATION_ERROR") {
+        setFormError(getRtkErrorMessage(err) || "Please check the consultation details and try again.");
+        return;
+      }
       setFormError("Failed to save consultation. Please try again.");
     }
   };
@@ -165,10 +207,13 @@ export function ConsultationForm({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-foreground">Visit Notes</h2>
+        <h2 className="text-lg font-semibold text-foreground">
+          {isEdit ? "Edit Consultation" : "Visit Notes"}
+        </h2>
         <p className="text-sm text-muted-foreground">
-          Record consultation details for {patientName}. Saving notes does not require a
-          prescription and does not complete the appointment unless you choose to.
+          {isEdit
+            ? `Update consultation details for ${patientName}.`
+            : `Record consultation details for ${patientName}. Saving notes can optionally include a prescription. Confirmed appointments are marked completed when the consultation is saved.`}
         </p>
       </div>
 
@@ -228,6 +273,7 @@ export function ConsultationForm({
         </CardContent>
       </Card>
 
+      {!isEdit && (
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between gap-2">
@@ -307,7 +353,7 @@ export function ConsultationForm({
                       variant="outline"
                       size="sm"
                       onClick={handleAddMedicine}
-                      disabled={isCreating}
+                      disabled={isSaving}
                       className="cursor-pointer"
                     >
                       <Plus className="h-4 w-4" />
@@ -327,7 +373,7 @@ export function ConsultationForm({
                         <button
                           type="button"
                           onClick={() => handleRemoveItem(item.rowId)}
-                          disabled={isCreating}
+                          disabled={isSaving}
                           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-red-600 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                           aria-label={`Remove medicine ${idx + 1}`}
                         >
@@ -383,15 +429,20 @@ export function ConsultationForm({
           )}
         </AnimatePresence>
       </Card>
+      )}
 
       <div className="flex flex-wrap items-center justify-end gap-3">
         {onCancel && (
-          <Button variant="outline" onClick={onCancel} disabled={isCreating} className="cursor-pointer">
+          <Button variant="outline" onClick={onCancel} disabled={isSaving} className="cursor-pointer">
             Cancel
           </Button>
         )}
-        <Button onClick={handleSubmit} isLoading={isCreating} className="cursor-pointer">
-          {addPrescription ? "Save Visit Notes & Prescription" : "Save Visit Notes"}
+        <Button onClick={handleSubmit} isLoading={isSaving} className="cursor-pointer">
+          {isEdit
+            ? "Save Changes"
+            : addPrescription
+              ? "Save Visit Notes & Prescription"
+              : "Save Consultation"}
         </Button>
       </div>
     </div>

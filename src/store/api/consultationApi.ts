@@ -80,9 +80,12 @@ export interface ConsultationData {
     endTime: string;
     type: string;
     status: string;
+    reason?: string | null;
   };
   patient?: ConsultationPatient;
   prescriptions?: PrescriptionData[];
+  prescriptionStatus?: string | null;
+  prescriptionId?: string | null;
 }
 
 export interface MedicalRecordData {
@@ -211,6 +214,28 @@ export interface UpdatePrescriptionRequest {
 
 export const consultationApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    // --- Doctor: List consultations ---
+    getDoctorConsultations: builder.query<
+      { data: ConsultationData[]; meta: PaginationMeta },
+      { q?: string; page?: number; limit?: number }
+    >({
+      query: (params) => {
+        const sp = new URLSearchParams();
+        if (params.q) sp.set("q", params.q);
+        if (params.page) sp.set("page", params.page.toString());
+        if (params.limit) sp.set("limit", params.limit.toString());
+        const qs = sp.toString();
+        return `/doctor/consultations${qs ? `?${qs}` : ""}`;
+      },
+      providesTags: (result) =>
+        result?.data
+          ? [
+              { type: "Consultation" as const, id: "LIST" },
+              ...result.data.map((c) => ({ type: "Consultation" as const, id: c.id })),
+            ]
+          : [{ type: "Consultation" as const, id: "LIST" }],
+    }),
+
     // --- Doctor: Create consultation ---
     createConsultation: builder.mutation<
       ApiResponse<{ consultation: ConsultationData; prescription: PrescriptionData | null }>,
@@ -222,9 +247,10 @@ export const consultationApi = baseApi.injectEndpoints({
         body: data,
       }),
       invalidatesTags: (_result, _error, arg) => [
+        { type: "Consultation", id: "LIST" },
+        "Consultation",
         "Appointment",
         "Prescription",
-        "Patient",
         { type: "Appointment", id: arg.appointmentId },
         { type: "Appointment", id: "DOCTOR_DASHBOARD" },
       ],
@@ -233,7 +259,10 @@ export const consultationApi = baseApi.injectEndpoints({
     // --- Doctor: Get consultation detail ---
     getDoctorConsultation: builder.query<ApiResponse<ConsultationData>, string>({
       query: (consultationId) => `/doctor/consultations/${consultationId}`,
-      providesTags: (_result, _error, id) => [{ type: "Patient", id: `consultation-${id}` }],
+      providesTags: (_result, _error, id) => [
+        { type: "Consultation", id },
+        { type: "Patient", id: `consultation-${id}` },
+      ],
     }),
 
     // --- Doctor: Update consultation ---
@@ -247,7 +276,10 @@ export const consultationApi = baseApi.injectEndpoints({
         body,
       }),
       invalidatesTags: (_result, _error, { consultationId }) => [
+        { type: "Consultation", id: consultationId },
+        { type: "Consultation", id: "LIST" },
         { type: "Patient", id: `consultation-${consultationId}` },
+        "Appointment",
       ],
     }),
 
@@ -356,6 +388,7 @@ export const consultationApi = baseApi.injectEndpoints({
 });
 
 export const {
+  useGetDoctorConsultationsQuery,
   useCreateConsultationMutation,
   useGetDoctorConsultationQuery,
   useUpdateConsultationMutation,
